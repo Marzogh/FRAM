@@ -1,9 +1,9 @@
 /* Arduino SPIFRAM Library v.0.0.1
  * Copyright (C) 2015 by Prajwal Bhattaram
- * Modified by Prajwal Bhattaram - 30/06/2016
+ * Modified by Prajwal Bhattaram - 01/07/2016
  *
  * This file is part of the Arduino SPIFRAM Library. This library is for
- * Fujitsu FRAM memory modules. In its current form it enables reading
+ * Winbond NOR flash memory modules. In its current form it enables reading
  * and writing individual data variables, structs and arrays from and to various locations;
  * reading and writing pages; continuous read functions; sector, block and chip erase;
  * suspending and resuming programming/erase and powering down for low power operation.
@@ -27,24 +27,44 @@
 //						Common Instructions 						  //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#define WREN    0x06
-#define WRDI    0x04
-#define RDSR    0x05
-#define WRSR    0x01
-#define READ    0x03
-#define WRITE   0x02
-#define RDID    0x9F
+#define	MANID		 0x90
+#define PAGEPROG     0x02
+#define READDATA     0x03
+#define FASTREAD	 0x0B
+#define WRITEDISABLE 0x04
+#define READSTAT1    0x05
+#define READSTAT2	 0x35
+#define WRITESTAT    0x01
+#define WRITEENABLE  0x06
+#define SECTORERASE  0x20
+#define BLOCK32ERASE 0x52
+#define CHIPERASE    0xC7
+#define SUSPEND      0x75
+#define ID           0x90
+#define RESUME       0x7A
+#define JEDECID      0x9f
+#define RELEASE      0xAB
+#define POWERDOWN    0xB9
+#define BLOCK64ERASE 0xD8
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 //					Chip specific instructions 						  //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~ Fujitsu ~~~~~~~~~~~~~~~~~~~~~~~~~//
-  #define FUJITSU_MANID		 0x04
+	//~~~~~~~~~~~~~~~~~~~~~~~~~ Winbond ~~~~~~~~~~~~~~~~~~~~~~~~~//
+  #define WINBOND_MANID		 0xEF
+  #define PAGESIZE	 0x100
+
+
+	//~~~~~~~~~~~~~~~~~~~~~~~~ Microchip ~~~~~~~~~~~~~~~~~~~~~~~~//
+  #define MICROCHIP_MANID		 0xBF
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 //							Definitions 							  //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+
+#define BUSY         0x01
 #define WRTEN        0x02
+#define SUS 		 0x40
 #define DUMMYBYTE	 0xEE
 
 #define arrayLen(x)  	(sizeof(x) / sizeof(*x))
