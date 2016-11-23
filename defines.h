@@ -27,46 +27,49 @@
 //						Common Instructions 						  //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#define	MANID        0x90
 #define PAGEPROG     0x02
 #define READDATA     0x03
-#define FASTREAD     0x0B
 #define WRITEDISABLE 0x04
 #define READSTAT1    0x05
-#define READSTAT2    0x35
 #define WRITESTAT    0x01
 #define WRITEENABLE  0x06
-#define SECTORERASE  0x20
-#define BLOCK32ERASE 0x52
-#define CHIPERASE    0xC7
-#define SUSPEND      0x75
-#define ID           0x90
-#define RESUME       0x7A
 #define JEDECID      0x9F
-#define RELEASE      0xAB
-#define POWERDOWN    0xB9
-#define BLOCK64ERASE 0xD8
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-//					Chip specific instructions 						  //
+//                     General size definitions                       //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+#define KB1           1L * K
+#define KB2           2L * K
+#define KB4           4L * K
+#define KB8           8L * K
+#define KB16          16L * K
+#define KB32          32L * K
+#define KB64          64L * K
+#define KB128         128L * K
+#define KB256         256L * K
+#define KB512         512L * K
+#define MB1           1L * M
+#define MB2           2L * M
+#define MB4           4L * M
+#define MB8           8L * M
+#define MB16          16L * M
+#define MB32          32L * M
+#define MB64          64L * M
+#define MB128         128L * M
+#define MB256         256L * M
+#define MB512         512L * M
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~ Winbond ~~~~~~~~~~~~~~~~~~~~~~~~~//
-  #define WINBOND_MANID		 0xEF
-  #define PAGESIZE	 0x100
-
-	//~~~~~~~~~~~~~~~~~~~~~~~~ Microchip ~~~~~~~~~~~~~~~~~~~~~~~~//
-  #define MICROCHIP_MANID		 0xBF
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-//							Definitions 							  //
+//                          Definitions                               //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+#define EMPTYCELL     0xFF
 
-#define BUSY          0x01
 #if defined (ARDUINO_ARCH_ESP32)
 #define SPI_CLK       20000000
 #else
-#define SPI_CLK       104000000       //Hex equivalent of 104MHz
+#define SPI_CLK       40000000       //Hex equivalent of 40MHz
 #endif
+
 #define WRTEN         0x02
 #define SUS           0x40
 #define DUMMYBYTE     0xEE
@@ -75,14 +78,12 @@
 #define NO_CONTINUE   0x00
 #define PASS          0x01
 #define FAIL          0x00
-#if defined (SIMBLEE)
-#define BUSY_TIMEOUT  100L
-#else
-#define BUSY_TIMEOUT  10L
-#endif
 #define arrayLen(x)   (sizeof(x) / sizeof(*x))
 #define lengthOf(x)   (sizeof(x))/sizeof(byte)
 #define maxAddress    capacity
+#define K             1024L
+#define M             K * K
+#define S             1000L
 
 #if defined (ARDUINO_ARCH_ESP8266)
 #define CS 15
@@ -121,12 +122,10 @@
  #define CALLBEGIN    0x01
  #define UNKNOWNCHIP  0x02
  #define UNKNOWNCAP   0x03
- #define CHIPBUSY     0x04
  #define OUTOFBOUNDS  0x05
  #define CANTENWRITE  0x06
  #define PREVWRITTEN  0x07
  #define LOWRAM       0x08
- #define NOSUSPEND    0x09
  #define UNKNOWNERROR 0xFF
 
  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//

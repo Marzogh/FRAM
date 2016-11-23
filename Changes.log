@@ -7,4 +7,10 @@
 //																							22.11.2016																					//
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 Abilities:
--->
+--> Constructor now takes an ID variable
+--> Ability to define non supported chips by declaring the following:
+
+        #define CHIPSIZE X    // X has to be as follows: a 256KB (kilobit) chip would be KB256
+                              // A 16MB(Megabit) chip would be MB16 etc.
+
+--> Got rid of getChipName() - it is superfluous
