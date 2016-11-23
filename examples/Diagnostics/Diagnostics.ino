@@ -1,32 +1,42 @@
 /*
   |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
   |                                                                Diagnostics.ino                                                                |
-  |                                                               SPIFlash library                                                                |
-  |                                                                   v 2.3.0                                                                     |
+  |                                                               SPIFRAM library                                                                 |
+  |                                                                   v 0.0.1b                                                                    |
   |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
   |                                                                    Marzogh                                                                    |
-  |                                                                  04.06.2016                                                                   |
+  |                                                                  30.09.2016                                                                   |
   |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
   |                                                                                                                                               |
   |                                  For a full diagnostics rundown - with error codes and details of the errors                                  |
-  |                                uncomment #define RUNDIAGNOSTIC in SPIFlash.cpp in the library before compiling                                |
+  |                                uncomment #define RUNDIAGNOSTIC in SPIFRAM.cpp in the library before compiling                                 |
   |                                             and loading this application onto your Arduino.                                                   |
   |                                                                                                                                               |
   |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
 */
 
-#include"SPIFRAM.h"
-#include<SPI.h>
+#include<SPIFRAM.h>
 
-#define WINBOND     0xEF
-#define MICROCHIP   0xBF
+#if defined(ARDUINO_SAMD_ZERO) && defined(SERIAL_PORT_USBVIRTUAL)
+// Required for Serial on Zero based boards
+#define Serial SERIAL_PORT_USBVIRTUAL
+#endif
 
-char printBuffer[128];
+#if defined (SIMBLEE)
+#define BAUD_RATE 250000
+#define RANDPIN 1
+#else
+#define BAUD_RATE 115200
+#define RANDPIN A0
+#endif
 
-SPIFlash flash;
+SPIFRAM flash;
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(BAUD_RATE);
+#if defined (ARDUINO_ARCH_SAMD) || (__AVR_ATmega32U4__)
+  while (!Serial) ; // Wait for Serial monitor to open
+#endif
   Serial.print(F("Initialising Flash memory"));
   for (int i = 0; i < 10; ++i)
   {
@@ -37,8 +47,12 @@ void setup() {
   Serial.println();
   Serial.println();
 
-  randomSeed(analogRead(A0));
-  ID();
+#if defined (ARDUINO_ARCH_ESP32)
+  randomSeed(65535537);
+#else
+  randomSeed(analogRead(RANDPIN));
+#endif
+  getID();
   diagnose();
 }
 
@@ -49,15 +63,19 @@ void loop() {
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Serial Print Functions~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-void clearprintBuffer()
+void clearprintBuffer(char *bufPtr)
 {
   for (uint8_t i = 0; i < 128; i++) {
-    printBuffer[i] = 0;
+    //printBuffer[i] = 0;
+    *bufPtr++ = 0;
   }
 }
 
 void printLine() {
-  Serial.println(F("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"));
+  for (uint8_t i = 0; i < 230; i++) {
+    Serial.print(F("-"));
+  }
+  Serial.println();
 }
 
 void printPass() {

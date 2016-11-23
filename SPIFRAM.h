@@ -1,9 +1,9 @@
-/* Arduino SPIFRAM Library v.0.0.1
+/* Arduino SPIFRAM Library v 0.0.1b
  * Copyright (C) 2015 by Prajwal Bhattaram
- * Modified by Prajwal Bhattaram - 30/06/2016
+ * Modified by Prajwal Bhattaram - 13/11/2016
  *
  * This file is part of the Arduino SPIFRAM Library. This library is for
- * Fujitsu FRAM memory modules. In its current form it enables reading
+ * Winbond NOR flash memory modules. In its current form it enables reading
  * and writing individual data variables, structs and arrays from and to various locations;
  * reading and writing pages; continuous read functions; sector, block and chip erase;
  * suspending and resuming programming/erase and powering down for low power operation.
@@ -26,99 +26,236 @@
 #ifndef SPIFRAM_H
 #define SPIFRAM_H
 
+#if defined (ARDUINO_ARCH_SAM)
+  #include <malloc.h>
+  #include <stdlib.h>
+  #include <stdio.h>
+#endif
 #include <Arduino.h>
+#ifndef __AVR_ATtiny85__
+  #include <SPI.h>
+#endif
+#include "defines.h"
+
+#if defined (ARDUINO_ARCH_SAM) || defined (ARDUINO_ARCH_SAMD) || defined (ARDUINO_ARCH_ESP8266) || defined (SIMBLEE) || defined (ARDUINO_ARCH_ESP32)
+ #define _delay_us(us) delayMicroseconds(us)
+#else
+ #include <util/delay.h>
+#endif
+
+#ifdef ARDUINO_ARCH_AVR
+	#ifdef __AVR_ATtiny85__
+		#define CHIP_SELECT   PORTB &= ~cs_mask;
+		#define CHIP_DESELECT PORTB |=  cs_mask;
+		#define SPIBIT                      \
+		  USICR = ((1<<USIWM0)|(1<<USITC)); \
+		  USICR = ((1<<USIWM0)|(1<<USITC)|(1<<USICLK));
+		static uint8_t xfer(uint8_t n) {
+			USIDR = n;
+			SPIBIT
+			SPIBIT
+			SPIBIT
+			SPIBIT
+			SPIBIT
+			SPIBIT
+			SPIBIT
+			SPIBIT
+			return USIDR;
+		}
+  #else
+    #define CHIP_SELECT   *cs_port &= ~cs_mask;
+    #define CHIP_DESELECT *cs_port |=  cs_mask;
+    #define xfer(n)   SPI.transfer(n)
+  #endif
+#elif defined (ARDUINO_ARCH_SAM)
+    #define CHIP_SELECT   digitalWrite(csPin, LOW);
+    #define CHIP_DESELECT digitalWrite(csPin, HIGH);
+    #define xfer   _dueSPITransfer
+#else //#elif defined (ARDUINO_ARCH_ESP8266) || defined (ARDUINO_ARCH_SAMD)
+  #define CHIP_SELECT   digitalWrite(csPin, LOW);
+  #define CHIP_DESELECT digitalWrite(csPin, HIGH);
+  #define xfer(n)   SPI.transfer(n)
+#endif
+
+#define LIBVER 2
+#define LIBSUBVER 5
+#define BUGFIXVER 0
+
+#if defined (ARDUINO_ARCH_SAM)
+  extern char _end;
+  extern "C" char *sbrk(int i);
+  //char *ramstart=(char *)0x20070000;
+  //char *ramend=(char *)0x20088000;
+#endif
 
 class SPIFRAM {
 public:
   //----------------------------------------------Constructor-----------------------------------------------//
-  SPIFRAM(uint8_t cs = SS, bool overflow = true);
+  SPIFRAM(uint8_t cs = CS, bool overflow = true);
   //----------------------------------------Initial / Chip Functions----------------------------------------//
   void     begin(void);
-  uint32_t getJEDECID();
+  void     setClock(uint32_t clockSpeed);
+  bool     libver(uint8_t *b1, uint8_t *b2, uint8_t *b3);
+  uint8_t  error(void);
+  uint16_t getManID(void);
+  uint32_t getJEDECID(void);
   bool     getAddress(uint16_t size, uint16_t &page_number, uint8_t &offset);
   uint32_t getAddress(uint16_t size);
-  uint16_t getChipName();
+  uint16_t getChipName(void);
   uint16_t sizeofStr(String &inputStr);
-  uint32_t getCapacity();
-  uint32_t getMaxPage();
+  uint32_t getCapacity(void);
+  uint32_t getMaxPage(void);
   //-------------------------------------------Write / Read Bytes-------------------------------------------//
   bool     writeByte(uint32_t address, uint8_t data, bool errorCheck = true);
-  uint8_t  readByte(uint32_t address);
+  bool     writeByte(uint16_t page_number, uint8_t offset, uint8_t data, bool errorCheck = true);
+  uint8_t  readByte(uint16_t page_number, uint8_t offset, bool fastRead = false);
+  uint8_t  readByte(uint32_t address, bool fastRead = false);
   //----------------------------------------Write / Read Byte Arrays----------------------------------------//
   bool     writeByteArray(uint32_t address, uint8_t *data_buffer, uint16_t bufferSize, bool errorCheck = true);
-  bool     readByteArray(uint32_t address, uint8_t *data_buffer, uint16_t bufferSize);
+  bool     writeByteArray(uint16_t page_number, uint8_t offset, uint8_t *data_buffer, uint16_t bufferSize, bool errorCheck = true);
+  bool     readByteArray(uint32_t address, uint8_t *data_buffer, uint16_t bufferSize, bool fastRead = false);
+  bool     readByteArray(uint16_t page_number, uint8_t offset, uint8_t *data_buffer, uint16_t bufferSize, bool fastRead = false);
   //-------------------------------------------Write / Read Chars-------------------------------------------//
   bool     writeChar(uint32_t address, int8_t data, bool errorCheck = true);
-  int8_t   readChar(uint32_t address);
+  bool     writeChar(uint16_t page_number, uint8_t offset, int8_t data, bool errorCheck = true);
+  int8_t   readChar(uint32_t address, bool fastRead = false);
+  int8_t   readChar(uint16_t page_number, uint8_t offset, bool fastRead = false);
   //----------------------------------------Write / Read Char Arrays----------------------------------------//
   bool     writeCharArray(uint32_t address, char *data_buffer, uint16_t bufferSize, bool errorCheck = true);
-  bool     readCharArray(uint32_t address, char *data_buffer, uint16_t buffer_size);
+  bool     writeCharArray(uint16_t page_number, uint8_t offset, char *data_buffer, uint16_t bufferSize, bool errorCheck = true);
+  bool     readCharArray(uint32_t address, char *data_buffer, uint16_t buffer_size, bool fastRead = false);
+  bool     readCharArray(uint16_t page_number, uint8_t offset, char *data_buffer, uint16_t buffer_size, bool fastRead = false);
   //------------------------------------------Write / Read Shorts------------------------------------------//
   bool     writeShort(uint32_t address, int16_t data, bool errorCheck = true);
-  int16_t  readShort(uint32_t address);
+  bool     writeShort(uint16_t page_number, uint8_t offset, int16_t data, bool errorCheck = true);
+  int16_t  readShort(uint32_t address, bool fastRead = false);
+  int16_t  readShort(uint16_t page_number, uint8_t offset, bool fastRead = false);
   //-------------------------------------------Write / Read Words-------------------------------------------//
   bool     writeWord(uint32_t address, uint16_t data, bool errorCheck = true);
-  uint16_t readWord(uint32_t address);
+  bool     writeWord(uint16_t page_number, uint8_t offset, uint16_t data, bool errorCheck = true);
+  uint16_t readWord(uint32_t address, bool fastRead = false);
+  uint16_t readWord(uint16_t page_number, uint8_t offset, bool fastRead = false);
   //-------------------------------------------Write / Read Longs-------------------------------------------//
   bool     writeLong(uint32_t address, int32_t data, bool errorCheck = true);
-  int32_t  readLong(uint32_t address);
+  bool     writeLong(uint16_t page_number, uint8_t offset, int32_t data, bool errorCheck = true);
+  int32_t  readLong(uint32_t address, bool fastRead = false);
+  int32_t  readLong(uint16_t page_number, uint8_t offset, bool fastRead = false);
   //--------------------------------------Write / Read Unsigned Longs---------------------------------------//
   bool     writeULong(uint32_t address, uint32_t data, bool errorCheck = true);
-  uint32_t readULong(uint32_t address);
+  bool     writeULong(uint16_t page_number, uint8_t offset, uint32_t data, bool errorCheck = true);
+  uint32_t readULong(uint32_t address, bool fastRead = false);
+  uint32_t readULong(uint16_t page_number, uint8_t offset, bool fastRead = false);
   //-------------------------------------------Write / Read Floats------------------------------------------//
   bool     writeFloat(uint32_t address, float data, bool errorCheck = true);
-  float    readFloat(uint32_t address);
+  bool     writeFloat(uint16_t page_number, uint8_t offset, float data, bool errorCheck = true);
+  float    readFloat(uint32_t address, bool fastRead = false);
+  float    readFloat(uint16_t page_number, uint8_t offset, bool fastRead = false);
   //------------------------------------------Write / Read Strings------------------------------------------//
   bool     writeStr(uint32_t address, String &inputStr, bool errorCheck = true);
-  bool     readStr(uint32_t address, String &outStr);
+  bool     writeStr(uint16_t page_number, uint8_t offset, String &inputStr, bool errorCheck = true);
+  bool     readStr(uint32_t address, String &outStr, bool fastRead = false);
+  bool     readStr(uint16_t page_number, uint8_t offset, String &outStr, bool fastRead = false);
   //------------------------------------------Write / Read Anything-----------------------------------------//
   template <class T> bool writeAnything(uint32_t address, const T& value, bool errorCheck = true);
-  template <class T> bool readAnything(uint32_t address, T& value);
+  template <class T> bool writeAnything(uint16_t page_number, uint8_t offset, const T& value, bool errorCheck = true);
+  template <class T> bool readAnything(uint32_t address, T& value, bool fastRead = false);
+  template <class T> bool readAnything(uint16_t page_number, uint8_t offset, T& value, bool fastRead = false);
   //--------------------------------------------Erase functions---------------------------------------------//
-  bool     erase(uint32_t address, uint32_t size);
   bool     eraseSector(uint32_t address);
+  bool     eraseSector(uint16_t page_number, uint8_t offset);
   bool     eraseBlock32K(uint32_t address);
+  bool     eraseBlock32K(uint16_t page_number, uint8_t offset);
   bool     eraseBlock64K(uint32_t address);
+  bool     eraseBlock64K(uint16_t page_number, uint8_t offset);
   bool     eraseChip(void);
-  //--------------------------------------------Private functions-------------------------------------------//
+  //---------------------------------------------Power functions--------------------------------------------//
+  bool     suspendProg(void);
+  bool     resumeProg(void);
+  bool     powerDown(void);
+  bool     powerUp(void);
+  //-------------------------------------Public Arduino Due Functions---------------------------------------//
+#if defined (ARDUINO_ARCH_SAM)
+  uint32_t dueFreeRAM(void);
+#endif
+  //-------------------------------------------Public variables---------------------------------------------//
+
 private:
-  void     _troubleshoot(uint8_t error);
-  void     _endSPI(void);
+#if defined (ARDUINO_ARCH_SAM)
+  //-------------------------------------Private Arduino Due Functions--------------------------------------//
+  void     _dmac_disable(void);
+  void     _dmac_enable(void);
+  void     _dmac_channel_disable(uint32_t ul_num);
+  void     _dmac_channel_enable(uint32_t ul_num);
+  bool     _dmac_channel_transfer_done(uint32_t ul_num);
+  void     _dueSPIDmaRX(uint8_t* dst, uint16_t count);
+  void     _dueSPIDmaRX(char* dst, uint16_t count);
+  void     _dueSPIDmaTX(const uint8_t* src, uint16_t count);
+  void     _dueSPIDmaCharTX(const char* src, uint16_t count);
+  void     _dueSPIBegin(void);
+  void     _dueSPIInit(uint8_t dueSckDivisor);
+  uint8_t  _dueSPITransfer(uint8_t b);
+  uint8_t  _dueSPIRecByte(void);
+  uint8_t  _dueSPIRecByte(uint8_t* buf, size_t len);
+  int8_t   _dueSPIRecChar(void);
+  int8_t   _dueSPIRecChar(char* buf, size_t len);
+  void     _dueSPISendByte(uint8_t b);
+  void     _dueSPISendByte(const uint8_t* buf, size_t len);
+  void     _dueSPISendChar(char b);
+  void     _dueSPISendChar(const char* buf, size_t len);
+#endif
+  //--------------------------------------------Private functions-------------------------------------------//
+  void     _troubleshoot(void);
+  void     _cmd(uint8_t cmd, bool _continue = true);
+  void     _endProcess(void);
   void     _errorCodeCheck(void);
+  void     _endSPI(void);
   bool     _prep(uint8_t opcode, uint32_t address, uint32_t size);
-  bool     _beginSPI(uint8_t opcode, uint32_t address = 0x00,  uint8_t _continue = true);
-  bool     _nextByte(uint8_t opcode, bool _continue = true, uint8_t byte = 0x00);
+  bool     _prep(uint8_t opcode, uint32_t page_number, uint8_t offset, uint32_t size);
+  bool     _startSPIBus(void);
+  bool     _beginSPI(uint8_t opcode);
+  bool     _noSuspend(void);
+  bool     _notBusy(uint32_t timeout = BUSY_TIMEOUT);
   bool     _notPrevWritten(uint32_t address, uint32_t size = 1);
-  bool     _addressCheck(uint32_t address, uint32_t size = 1);
   bool     _writeEnable(uint32_t timeout = 10L);
   bool     _writeDisable(void);
-  bool     _getJedecId(uint8_t *b1, uint8_t *b2, uint8_t *b3, uint8_t *b4);
+  bool     _getJedecId(uint8_t *b1, uint8_t *b2, uint8_t *b3);
+  bool     _getManId(uint8_t *b1, uint8_t *b2);
   bool     _chipID(void);
-  uint8_t  _readStat(void);
+  bool     _transferAddress(void);
+  bool     _addressCheck(uint32_t address, uint32_t size = 1);
+  uint8_t  _nextByte(uint8_t data = NULLBYTE);
+  uint8_t  _nextByte(uint8_t opcode, uint8_t data);
+  uint16_t _nextInt(uint16_t = NULLINT);
+  void     _nextBuf(uint8_t opcode, uint8_t *data_buffer, uint32_t size);
+  uint8_t  _readStat1(void);
+  uint8_t  _readStat2(void);
+  uint32_t _getAddress(uint16_t page_number, uint8_t offset = 0);
   template <class T> bool _writeErrorCheck(uint32_t address, const T& value);
-  SPISettings FujitsuSPI(20000000, MSBFIRST, SPI_MODE0);
   //-------------------------------------------Private variables------------------------------------------//
-  bool        pageOverflow;
+  bool        pageOverflow, SPIBusState;
   volatile uint8_t *cs_port;
-  uint8_t     cs_mask, csPin, errorcode, state;
+  uint8_t     cs_mask, csPin, errorcode, state, _SPCR, _SPSR;
   uint16_t    name;
-  uint32_t    capacity;
-  uint32_t    currentAddress = 1;
-  const uint8_t density[11]   = {0x01, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x43};
-  const uint32_t memSize[11]  = {16L * 1024L, 128L * 1024L, 256L * 1024L, 512L * 1024L, 1L * 1024L * 1024L,
+  uint32_t    capacity, maxPage, _eraseTime;
+  uint32_t    currentAddress, _currentAddress = 0;
+#ifdef SPI_HAS_TRANSACTION
+  SPISettings _settings;
+#endif
+  const uint8_t devType[11]   = {0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x43};
+  const uint32_t memSize[11]  = {64L * 1024L, 128L * 1024L, 256L * 1024L, 512L * 1024L, 1L * 1024L * 1024L,
                                 2L * 1024L * 1024L, 4L * 1024L * 1024L, 8L * 1024L * 1024L, 16L * 1024L * 1024L,
                                 32L * 1024L * 1024L, 8L * 1024L * 1024L};
-  const uint16_t chipName[11] = {16, 10, 20, 40, 80, 16, 32, 64, 128, 256, 64};
+  const uint16_t chipName[11] = {05, 10, 20, 40, 80, 16, 32, 64, 128, 256, 64};
+  const uint32_t eraseTime[11] = {1L * 1000L, 2L * 1000L, 2L * 1000L, 4L * 1000L, 6L * 1000L, 10 * 1000L, 15 * 1000L, 100 * 1000L, 200 * 1000L, 400 * 1000L, 50L}; //Erase time in milliseconds
 };
 
-
-  //--------------------------------------------Templates-------------------------------------------//
+//--------------------------------------------Templates-------------------------------------------//
 
 // Writes any type of data to a specific location in the flash memory.
 // Has two variants:
 //  A. Takes two arguments -
 //    1. address --> Any address from 0 to maxAddress
-//    2. T& value --> Variable to return data into
+//    2. T& value --> Variable to write data from
 //    4. errorCheck --> Turned on by default. Checks for writing errors
 //  B. Takes three arguments -
 //    1. page --> Any page number from 0 to maxPage
@@ -129,25 +266,55 @@ private:
 //      Use the eraseSector()/eraseBlock32K/eraseBlock64K commands to first clear memory (write 0xFFs)
 // Variant A
 template <class T> bool SPIFRAM::writeAnything(uint32_t address, const T& value, bool errorCheck) {
-  if (!_prepWrite(address))
+  if (!_prep(PAGEPROG, address, sizeof(value))) {
     return false;
-  else {
-    const byte* p = (const byte*)(const void*)&value;
-    _beginWrite(address);
-    for (uint16_t i = 0; i < sizeof(value); i++) {
-      #if defined (__arm__) && defined (__SAM3X8E__)
-        if (i == sizeof(value)-1)
-          _writeNextByte(*p++, false);
-      #endif
-        _writeNextByte(*p++);
-    }
-    _endProcess();
   }
+  uint16_t maxBytes = PAGESIZE-(address % PAGESIZE);  // Force the first set of bytes to stay within the first page
+  uint16_t length = sizeof(value);
 
-  if (!errorCheck)
+  //if (maxBytes > length) {
+    uint32_t writeBufSz;
+    uint16_t data_offset = 0;
+    const uint8_t* p = ((const uint8_t*)(const void*)&value);
+
+    _startSPIBus();
+    while (length > 0)
+    {
+      writeBufSz = (length<=maxBytes) ? length : maxBytes;
+
+      if(!_notBusy() || !_writeEnable()){
+        return false;
+      }
+
+      CHIP_SELECT
+      (void)xfer(PAGEPROG);
+      _transferAddress();
+
+      for (uint16_t i = 0; i < writeBufSz; ++i) {
+        _nextByte(*p++);
+      }
+      _currentAddress += writeBufSz;
+      data_offset += writeBufSz;
+      length -= writeBufSz;
+      maxBytes = 256;   // Now we can do up to 256 bytes per loop
+      CHIP_DESELECT
+    }
+  /*}
+  else {
+    uint32_t size = sizeof(value);
+    _beginSPI(PAGEPROG);
+    _nextBuf(PAGEPROG, (uint8_t*)&value, size);
+    Serial.print("...");
+    CHIP_DESELECT
+  }*/
+
+  if (!errorCheck) {
+    _endSPI();
     return true;
-  else
+  }
+  else {
     return _writeErrorCheck(address, value);
+  }
 }
 // Variant B
 template <class T> bool SPIFRAM::writeAnything(uint16_t page_number, uint8_t offset, const T& value, bool errorCheck) {
@@ -168,23 +335,19 @@ template <class T> bool SPIFRAM::writeAnything(uint16_t page_number, uint8_t off
 //    3. fastRead --> defaults to false - executes _beginFastRead() if set to true
 // Variant A
 template <class T> bool SPIFRAM::readAnything(uint32_t address, T& value, bool fastRead) {
-  if (!_prepRead(address))
+  if (!_prep(READDATA, address, sizeof(value)))
     return false;
 
-    byte* p = (byte*)(void*)&value;
+    uint8_t* p = (uint8_t*)(void*)&value;
     if(!fastRead)
-      _beginRead(address);
+      _beginSPI(READDATA);
     else
-      _beginFastRead(address);
-    for (uint16_t i = 0; i < sizeof(value); i++) {
-      #if defined (__arm__) && defined (__SAM3X8E__)
-        if (i == sizeof(value)-1)
-          *p++ = _readNextByte(false);
-      #endif
-      *p++ =_readNextByte();
-    }
-    _endProcess();
-    return true;
+      _beginSPI(FASTREAD);
+  for (uint16_t i = 0; i < sizeof(value); i++) {
+    *p++ =_nextByte();
+  }
+  _endSPI();
+  return true;
 }
 // Variant B
 template <class T> bool SPIFRAM::readAnything(uint16_t page_number, uint8_t offset, T& value, bool fastRead)
@@ -195,45 +358,29 @@ template <class T> bool SPIFRAM::readAnything(uint16_t page_number, uint8_t offs
 
 // Private template to check for errors in writing to flash memory
 template <class T> bool SPIFRAM::_writeErrorCheck(uint32_t address, const T& value) {
-/*if (address != 0x00){
-  if (!_prepRead(address)) {
-    return false;
-  }
-}
-else if (address == 0x00 && !_notBusy()) {
-  return false;
-}
-*/
-if (!_prepRead(address) && !_notBusy()) {
+if (!_prep(READDATA, address, sizeof(value)) && !_notBusy()) {
   return false;
 }
 
-  const byte* p = (const byte*)(const void*)&value;
-  _beginRead(address);
+  const uint8_t* p = (const uint8_t*)(const void*)&value;
+  _beginSPI(READDATA);
+  uint8_t _v;
   for(uint16_t i = 0; i < sizeof(value);i++)
   {
-    if(*p++ != _readNextByte())
+#if defined (ARDUINO_ARCH_SAM)
+    if(*p++ != _dueSPIRecByte())
     {
       return false;
     }
-    /*#if defined (__arm__) && defined (__SAM3X8E__)
-      if (i == sizeof(value)-1) {
-        if (*p++ != _readNextByte(false))
-          return false;
-        else
-          return true;
-      }
-      else
-        if (*p++ != _readNextByte())
-          return false;
-    #elif defined (__AVR__)
-    if (*p++ != _readNextByte())
+#else
+    if(*p++ != _nextByte())
+    {
       return false;
-    #endif*/
+    }
+#endif
   }
-  _endProcess();
+  _endSPI();
   return true;
 }
-
 
 #endif // _SPIFRAM_H_
