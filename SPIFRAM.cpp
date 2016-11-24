@@ -25,23 +25,6 @@
 
 #include "SPIFRAM.h"
 
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-//     Uncomment the code below to run a diagnostic if your flash 	  //
-//                         does not respond                           //
-//                                                                    //
-//      Error codes will be generated and returned on functions       //
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-//#define RUNDIAGNOSTIC                                               //
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-//   Uncomment the code below to increase the speed of the library    //
-//                  by disabling _notPrevWritten()                    //
-//                                                                    //
-// Make sure the sectors being written to have been erased beforehand //
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-//#define HIGHSPEED                                                   //
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-
 // Constructor
 
 SPIFRAM::SPIFRAM(uint8_t cs, bool overflow) {
@@ -121,7 +104,6 @@ bool SPIFRAM::_startSPIBus(void) {
 //Initiates SPI operation - but data is not transferred yet. Always call _prep() before this function (especially when it involves writing or reading to/from an address)
 bool SPIFRAM::_beginSPI(uint8_t opcode) {
   if (!SPIBusState) {
-    //Serial.println("Starting SPI Bus");
     _startSPIBus();
   }
   CHIP_SELECT
@@ -261,40 +243,43 @@ bool SPIFRAM::_getJedecId(uint8_t *b1, uint8_t *b2, uint8_t *b3, uint8_t *b4) {
 
 //Identifies the chip
 bool SPIFRAM::_chipID(void) {
-#ifdef CHIPSIZE
-  // If a custom chip size is defined
-  capacity = CHIPSIZE/8;
-  return true;
-#else
-  // If no custom chip size declared, ID the chip
-  //Get Manfucturer/Device ID so the library can identify the chip
-  uint8_t manID, contID, capID, devID ;
-  _getJedecId(&manID, &contID, &capID, &devID);
+  if (!capacity) {
+    // If no custom chip size declared, ID the chip
+    //Get Manfucturer/Device ID so the library can identify the chip
+    uint8_t manID, contID, capID, devID ;
+    _getJedecId(&manID, &contID, &capID, &devID);
 
-  if (manID != FUJITSU_MANID) {		//If the chip is not a Winbond Chip
-    errorcode = UNKNOWNCHIP;		//Error code for unidentified chip
-    #ifdef RUNDIAGNOSTIC
-    _troubleshoot();
-    #endif
-    while(1);
-  }
-  //Check flash memory type and identify capacity
-  //capacity & chip name
-  for (uint8_t i = 0; i < sizeof(devType); i++)
-  {
-    if (devID == devType[i]) {
-      capacity = (memSize[i])/8;
+    if (manID != FUJITSU_MANID) {		//If the chip is not a Winbond Chip
+      errorcode = UNKNOWNCHIP;		//Error code for unidentified chip
+      #ifdef RUNDIAGNOSTIC
+      _troubleshoot();
+      Serial.print("manID: 0x"); Serial.println(manID, HEX);
+      Serial.print("capID: 0x");Serial.println(capID, HEX);
+      Serial.print("devID: 0x");Serial.println(devID, HEX);
+      #endif
+      while(1);
     }
+    //Check flash memory type and identify capacity
+    //capacity & chip name
+    for (uint8_t i = 0; i < sizeof(devType); i++)
+    {
+      if (devID == devType[i]) {
+        capacity = (memSize[i])/8;
+      }
+    }
+    if (capacity == 0) {
+      errorcode = UNKNOWNCAP;		//Error code for unidentified capacity
+      #ifdef RUNDIAGNOSTIC
+      _troubleshoot();
+      #endif
+      while(1);
+    }
+    return true;
   }
-  if (capacity == 0) {
-    errorcode = UNKNOWNCAP;		//Error code for unidentified capacity
-    #ifdef RUNDIAGNOSTIC
-    _troubleshoot();
-    #endif
-    while(1);
+  else {
+    // If a custom chip size is defined
+    return true;
   }
-  return true;
-#endif
 }
 
 //Checks to see if pageOverflow is permitted and assists with determining next address to read/write.
@@ -344,7 +329,10 @@ bool SPIFRAM::_notPrevWritten(uint32_t address, uint32_t size) {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 //Identifies chip and establishes parameters
-void SPIFRAM::begin(void) {
+void SPIFRAM::begin(uint32_t _size) {
+  if (_size) {
+    capacity = _size/8;
+  }
 #if defined (ARDUINO_ARCH_SAM)
   _dueSPIBegin();
 #else

@@ -50,15 +50,9 @@ void SPIFRAM::_troubleshoot(void) {
 		case UNKNOWNCHIP:
  		#if defined (ARDUINO_ARCH_AVR) || defined (__AVR_ATtiny85__)
  		Serial.print("Error code: 0x0");
-   Serial.print("manID: 0x"); Serial.println(manID, HEX);
-   Serial.print("capID: 0x");Serial.println(capID, HEX);
-   Serial.print("devID: 0x");Serial.println(devID, HEX);
 		Serial.println(UNKNOWNCHIP, HEX);
 		#else
 		Serial.println("Unable to identify chip. Are you sure this is a Winbond Flash chip");
-   Serial.print("manID: 0x"); Serial.println(manID, HEX);
-   Serial.print("capID: 0x");Serial.println(capID, HEX);
-   Serial.print("devID: 0x");Serial.println(devID, HEX);
  		Serial.println("Please raise an issue at http://www.github.com/Marzogh/SPIFRAM/issues with your chip type and I will try to add support to your chip");
 		#endif
 
@@ -71,18 +65,6 @@ void SPIFRAM::_troubleshoot(void) {
 		#else
  		Serial.println("Unable to identify capacity.");
  		Serial.println("Please raise an issue at http://www.github.com/Marzogh/SPIFRAM/issues with your chip type and I will work on adding support to your chip");
-		#endif
-		break;
-
- 		case CHIPBUSY:
- 		#if defined (ARDUINO_ARCH_AVR) || defined (__AVR_ATtiny85__)
- 		Serial.print("Error code: 0x0");
-		Serial.println(CHIPBUSY, HEX);
-		#else
- 		Serial.println("Chip is busy.");
- 		Serial.println("Make sure all pins have been connected properly");
- 		Serial.print("If it still doesn't work, ");
- 		Serial.println("please raise an issue at http://www.github.com/Marzogh/SPIFRAM/issues with the details of what your were doing when this error occurred");
 		#endif
 		break;
 
@@ -130,17 +112,6 @@ void SPIFRAM::_troubleshoot(void) {
     Serial.println(_dueFreeRAM());
     #endif
   Serial.print("If you are still facing issues, ");
- 		Serial.println("please raise an issue at http://www.github.com/Marzogh/SPIFRAM/issues with the details of what your were doing when this error occurred");
-		#endif
-		break;
-
-    case NOSUSPEND:
- 		#if defined (ARDUINO_ARCH_AVR) || defined (__AVR_ATtiny85__)
- 		Serial.print("Error code: 0x0");
-		Serial.println(NOSUSPEND, HEX);
-		#else
- 		Serial.println("Unable to suspend operation.");
-    Serial.print("If you are unable to resolve this problem, ");
  		Serial.println("please raise an issue at http://www.github.com/Marzogh/SPIFRAM/issues with the details of what your were doing when this error occurred");
 		#endif
 		break;

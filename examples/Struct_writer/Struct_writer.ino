@@ -76,7 +76,7 @@ void setup() {
   }
   Serial.println();
   Serial.println();
-  fram.begin();
+  fram.begin(CHIPSIZE);
 
   uint32_t _cap = fram.getCapacity();
   uint32_t _addr = random(0, _cap);
@@ -93,12 +93,9 @@ void setup() {
   readLDR();
 #endif
 
-  if (fram.writeAnything(_addr, configuration))
+  if (fram.writeAnything(_addr, configuration)) {
     Serial.println ("Data write successful");
-  else
-    Serial.println ("Data write failed");
-
-  Serial.println(configuration.lux);
+    Serial.println(configuration.lux);
   Serial.println(configuration.vOut);
   Serial.println(configuration.RLDR);
   Serial.println(configuration.light);
@@ -127,7 +124,10 @@ void setup() {
   Serial.println(configuration.RLDR);
   Serial.println(configuration.light);
   Serial.println(configuration.adc);
-
+  }
+  else {
+    Serial.println ("Data write failed");
+  }
 }
 
 void loop() {

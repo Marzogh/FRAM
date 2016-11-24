@@ -16,31 +16,31 @@
   |  1. getID                                                                                                                        |
   |   '1' gets the JEDEC ID of the chip                                                                                              |
   |                                                                                                                                  |
-  |  2. writeByte [address] [byte]                                                                                             |
-  |   '2' followed by '100' and then by '224' writes the byte 224 to address 100                          |
+  |  2. writeByte [address] [byte]                                                                                                   |
+  |   '2' followed by '100' and then by '224' writes the byte 224 to address 100                                                     |
   |                                                                                                                                  |
-  |  3. readByte [address]                                                                                                     |
-  |   '3' followed by '100' returns the byte from address 100                                             |
+  |  3. readByte [address]                                                                                                           |
+  |   '3' followed by '100' returns the byte from address 100                                                                        |
   |                                                                                                                                  |
-  |  4. writeWord [address]                                                                                                    |
-  |   '4' followed by '55' and then by '633' writes the int 633 to address 55                             |
+  |  4. writeWord [address]                                                                                                          |
+  |   '4' followed by '55' and then by '633' writes the int 633 to address 55                                                        |
   |                                                                                                                                  |
-  |  5. readWord [address]                                                                                                     |
-  |   '5' followed by '200'returns the int from address 200                                           |
+  |  5. readWord [address]                                                                                                           |
+  |   '5' followed by '200'returns the int from address 200                                                                          |
   |                                                                                                                                  |
-  |  6. writeStr [address] [inputString]                                                                                       |
-  |   '6' followed by '345'and then by 'Test String 1!' writes the String 'Test String 1! to address 345 |
+  |  6. writeStr [address] [inputString]                                                                                             |
+  |   '6' followed by '345'and then by 'Test String 1!' writes the String 'Test String 1! to address 345                             |
   |                                                                                                                                  |
-  |  7. readStr [address] [outputString]                                                                                       |
-  |   '7' followed by '2050' reads the String from address 2050 into the outputString                       |
+  |  7. readStr [address] [outputString]                                                                                             |
+  |   '7' followed by '2050' reads the String from address 2050 into the outputString                                                |
   |                                                                                                                                  |
-  |  8. printEntireChip                                                                                                               |
-  |   '8' reads all addresss and outputs the data to the serial console                                                               |
-  |   This function is to extract data from a fram chip onto a computer as a text file.                                             |
+  |  8. printEntireChip                                                                                                              |
+  |   '8' reads all addresss and outputs the data to the serial console                                                              |
+  |   This function is to extract data from a fram chip onto a computer as a text file.                                              |
   |   Refer to 'Read me.md' in the library for details.                                                                              |
   |                                                                                                                                  |
   |  9. Erase a sector of user defined size                                                                                          |
-  |   '9'  followed by 540 followed by 800 erases an 800 Byte block starting at address 540                                                       |
+  |   '9'  followed by 540 followed by 800 erases an 800 Byte block starting at address 540                                          |
   |                                                                                                                                  |
   |  10. Erase Chip                                                                                                                  |
   |   '10' erases the entire chip                                                                                                    |
@@ -51,6 +51,7 @@
 
 
 #include<SPIFRAM.h>
+#define CHIPSIZE KB64
 uint8_t addressBuffer[256];
 String serialCommand;
 char printBuffer[128];
@@ -81,7 +82,7 @@ void setup() {
     Serial.print(F("."));
   }
   Serial.println();
-  fram.begin();
+  fram.begin(CHIPSIZE);
   Serial.println();
   Serial.println();
   commandList();
@@ -95,7 +96,7 @@ void loop() {
     }
     else if (commandNo == 1) {
       printLine();
-      Serial.println(F("                                                      Function 1 : Get JEDEC ID                                                   "));
+      Serial.println(F("                                                      Function 1 : Get JEDEC ID"));
       printLine();
       printLine();
       uint8_t b1, b2, b3;
@@ -115,7 +116,7 @@ void loop() {
     }
     else if (commandNo == 2) {
       printLine();
-      Serial.println(F("                                                       Function 2 : Write Byte                                                    "));
+      Serial.println(F("                                                       Function 2 : Write Byte"));
       printSplash();
       printLine();
       Serial.print(F("Please enter the address you wish to write to: "));
@@ -141,7 +142,7 @@ void loop() {
     }
     else if (commandNo == 3) {
       printLine();
-      Serial.println(F("                                                       Function 3 : Read Byte                                                     "));
+      Serial.println(F("                                                       Function 3 : Read Byte"));
       printSplash();
       printLine();
       Serial.print(F("Please enter the address that the byte you wish to read is on: "));
@@ -158,7 +159,7 @@ void loop() {
     }
     else if (commandNo == 4) {
       printLine();
-      Serial.println(F("                                                       Function 4 : Write Word                                                    "));
+      Serial.println(F("                                                       Function 4 : Write Word"));
       printSplash();
       printLine();
       Serial.print(F("Please enter the address you wish to write to: "));
@@ -184,7 +185,7 @@ void loop() {
     }
     else if (commandNo == 5) {
       printLine();
-      Serial.println(F("                                                       Function 5 : Read Word                                                     "));
+      Serial.println(F("                                                       Function 5 : Read Word"));
       printSplash();
       printLine();
       Serial.print(F("Please enter the address that the byte you wish to read is on: "));
@@ -201,7 +202,7 @@ void loop() {
     }
     else if (commandNo == 6) {
       printLine();
-      Serial.println(F("                                                      Function 6 : Write String                                                   "));
+      Serial.println(F("                                                      Function 6 : Write String"));
       printSplash();
       printLine();
       Serial.println(F("This function will write a String of your choice to the address selected."));
@@ -214,7 +215,7 @@ void loop() {
       while (!Serial.available()) {
       }
       readSerialStr(inputString);
-      if (fram.writeStr(address, offset, inputString)) {
+      if (fram.writeStr(address,  inputString)) {
         clearprintBuffer();
         Serial.print(F("String '"));
         Serial.print(inputString);
@@ -229,7 +230,7 @@ void loop() {
     }
     else if (commandNo == 7) {
       printLine();
-      Serial.println(F("                                                      Function 7 : Read String                                                    "));
+      Serial.println(F("                                                      Function 7 : Read String"));
       printSplash();
       printLine();
       Serial.print(F("Please enter the address the String you wish to read is on: "));
@@ -247,7 +248,7 @@ void loop() {
     }
     else if (commandNo == 8) {
       printLine();
-      Serial.println(F("                                                     Function 8 : Read Entire chip                                                  "));
+      Serial.println(F("                                                     Function 8 : Read Entire chip"));
       printSplash();
       printLine();
       Serial.println(F("This function will read the entire FRAM memory."));
@@ -269,7 +270,7 @@ void loop() {
     }
     else if (commandNo == 9) {
       printLine();
-      Serial.println(F("                                                       Function 10 : Erase Sector                                              "));
+      Serial.println(F("                                                       Function 9 : Erase Sector"));
       printSplash();
       printLine();
       Serial.println(F("This function will erase a sector of user defined size."));
@@ -283,7 +284,7 @@ void loop() {
       }
       uint32_t size = Serial.parseInt();
       Serial.println(size);
-      fram.eraseBlock32K(address, size);
+      fram.eraseSector(address, size);
       clearprintBuffer();
       sprintf(printBuffer, "A %l B sector starting at address %d has been erased", size, address);
       Serial.println(printBuffer);
@@ -298,14 +299,14 @@ void loop() {
         }
         uint8_t outputType = Serial.parseInt();
         Serial.println(outputType);
-        printaddress(address, outputType);
+        printPage(address, outputType);
       }
       printLine();
       printNextCMD();
     }
     else if (commandNo == 10) {
       printLine();
-      Serial.println(F("                                                      Function 11 : Erase Chip                                                    "));
+      Serial.println(F("                                                      Function 11 : Erase Chip"));
       printSplash();
       printLine();
       Serial.println(F("This function will erase the entire FRAM memory."));
@@ -347,7 +348,7 @@ bool readSerialStr(String &inputStr) {
 }
 
 //Prints hex/dec formatted data from address reads - for debugging
-void _printaddressBytes(uint8_t *data_buffer, uint8_t outputType) {
+void _printPageBytes(uint8_t *data_buffer, uint8_t outputType) {
   char buffer[10];
   for (int a = 0; a < 16; ++a) {
     for (int b = 0; b < 16; ++b) {
@@ -367,6 +368,20 @@ void _printaddressBytes(uint8_t *data_buffer, uint8_t outputType) {
   }
 }
 
+//Reads a page of data and prints it to Serial stream. Make sure the sizeOf(uint8_t data_buffer[]) == 256.
+void printPage(uint16_t page_number, uint8_t outputType) {
+  if (!Serial)
+    Serial.begin(115200);
+
+  char buffer[24];
+  sprintf(buffer, "Reading page (%04x)", page_number);
+  Serial.println(buffer);
+
+  uint8_t data_buffer[256];
+  fram.readByteArray(address, &data_buffer[0], 256);
+  _printPageBytes(data_buffer, outputType);
+}
+
 //Reads all addresss on fram chip and dumps it to Serial stream.
 //This function is useful when extracting data from a fram chip onto a computer as a text file.
 void printAllPages(uint8_t outputType) {
@@ -376,12 +391,12 @@ void printAllPages(uint8_t outputType) {
   Serial.println("Reading entire chip");
   uint8_t data_buffer[256];
 
-  uint32_t maxaddress = fram.getMaxaddress();
+  uint32_t maxaddress = fram.getCapacity();
   for (uint32_t a = 0; a < maxaddress; a++) {
     for (uint16_t j = 0; j <256; j++) {
       fram.readByteArray(a+j, &data_buffer[0], 256);
     }
-    _printaddressBytes(data_buffer, outputType);
+    _printPageBytes(data_buffer, outputType);
     a+=256L;
   }
 }

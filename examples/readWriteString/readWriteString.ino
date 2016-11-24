@@ -13,9 +13,9 @@
   |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
 */
 #include<SPIFRAM.h>
-
-int strPage, strSize;
-byte strOffset;
+#define CHIPSIZE KB64
+uint16_t strSize;
+uint32_t strAddr;
 
 #if defined(ARDUINO_SAMD_ZERO) && defined(SERIAL_PORT_USBVIRTUAL)
 // Required for Serial on Zero based boards
@@ -40,33 +40,29 @@ void setup() {
   while (!Serial) ; // Wait for Serial monitor to open
 #endif
 
-  fram.begin();
+  fram.begin(CHIPSIZE);
 
 #if defined (ARDUINO_ARCH_ESP32)
   randomSeed(65535537);
 #else
   randomSeed(analogRead(RANDPIN));
 #endif
-  strPage = random(0, 4095);
-  strOffset = random(0, 255);
+  uint32_t _cap = fram.getCapacity();
+  strAddr = random(0, _cap);
   String inputString = "This is a test String";
-  fram.writeStr(strPage, strOffset, inputString);
+  fram.writeStr(strAddr, inputString);
   Serial.print(F("Written string: "));
   Serial.print(inputString);
-  Serial.print(F(" to page "));
-  Serial.print(strPage);
-  Serial.print(F(", at offset "));
-  Serial.println(strOffset);
+  Serial.print(F(" to address "));
+  Serial.print(strAddr);
   String outputString = "";
-  if (fram.readStr(strPage, strOffset, outputString)) {
+  if (fram.readStr(strAddr, outputString)) {
     Serial.print(F("Read string: "));
     Serial.print(outputString);
-    Serial.print(F(" from page "));
-    Serial.print(strPage);
-    Serial.print(F(", at offset "));
-    Serial.println(strOffset);
+    Serial.print(F(" from address "));
+    Serial.print(strAddr);
   }
-  while (!fram.eraseSector(strPage, 0));
+  while (!fram.eraseSector(strAddr, strSize));
 }
 
 void loop() {

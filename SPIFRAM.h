@@ -88,12 +88,29 @@
   //char *ramend=(char *)0x20088000;
 #endif
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+//     Uncomment the code below to run a diagnostic if your flash 	  //
+//                         does not respond                           //
+//                                                                    //
+//      Error codes will be generated and returned on functions       //
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+#define RUNDIAGNOSTIC                                               //
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+//   Uncomment the code below to increase the speed of the library    //
+//                  by disabling _notPrevWritten()                    //
+//                                                                    //
+// Make sure the sectors being written to have been erased beforehand //
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+//#define HIGHSPEED                                                   //
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+
 class SPIFRAM {
 public:
   //----------------------------------------------Constructor-----------------------------------------------//
   SPIFRAM(uint8_t cs = CS, bool overflow = true);
   //----------------------------------------Initial / Chip Functions----------------------------------------//
-  void     begin(void);
+  void     begin(uint32_t _size = 0x00);
   void     setClock(uint32_t clockSpeed);
   bool     libver(uint8_t *b1, uint8_t *b2, uint8_t *b3);
   uint8_t  error(void);
@@ -256,26 +273,16 @@ template <class T> bool SPIFRAM::readAnything(uint32_t address, T& value) {
 
 // Private template to check for errors in writing to FRAM memory
 template <class T> bool SPIFRAM::_writeErrorCheck(uint32_t address, const T& value) {
-if (!_prep(READDATA, address, sizeof(value))) {
-  return false;
-}
-
-  const uint8_t* p = (const uint8_t*)(const void*)&value;
+  uint32_t _size = sizeof(value);
+  const byte* p = (const byte*)(const void*)&value;
+  _currentAddress = address;
   _beginSPI(READDATA);
-  uint8_t _v;
-  for(uint16_t i = 0; i < sizeof(value);i++)
+  for(uint16_t i = 0; i < _size;i++)
   {
-#if defined (ARDUINO_ARCH_SAM)
-    if(*p++ != _dueSPIRecByte())
-    {
-      return false;
-    }
-#else
-    if(*p++ != _nextByte())
-    {
-      return false;
-    }
-#endif
+      if(*p++ != _nextByte(READDATA))
+      {
+        return false;
+      }
   }
   _endSPI();
   return true;
