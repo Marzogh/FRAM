@@ -9,7 +9,7 @@
 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
 |                                                                                                                                               |
 |                                  This program shows the method to use the getAddress() function to automate                                   |
-|                                the process of address allocation when using a flash memory module. Please note                                |
+|                                the process of address allocation when using a fram memory module. Please note                                |
 |                                         the special function used to get the size of the String object.                                       |
 |                                                                                                                                               |
 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
@@ -41,26 +41,26 @@ byte testByte[] = {
   3, 245, 84, 100
 };
 
-SPIFRAM flash;
+SPIFRAM fram;
 
 void getAddresses();
 void writeData();
 
 void setup() {
   Serial.begin(BAUD_RATE);
-  Serial.print(F("Initialising Flash memory"));
+  Serial.print(F("Initialising fram memory"));
   for (int i = 0; i < 10; ++i)
   {
     Serial.print(F("."));
   }
   Serial.println();
-  flash.begin();
+  fram.begin();
   Serial.println();
   Serial.println();
 
   getAddresses();
   writeData();
-  flash.eraseChip();
+  fram.eraseChip();
 }
 
 void loop() {
@@ -70,7 +70,7 @@ void loop() {
 // Function to get adresses for various variables
 void getAddresses() {
   for (uint8_t i = 0; i < arrayLen(byteAddr); i++) {
-    byteAddr[i] = flash.getAddress(sizeof(byte));
+    byteAddr[i] = fram.getAddress(sizeof(byte));
     Serial.print("Byte Address ");
     Serial.print(i);
     Serial.print(" : ");
@@ -78,7 +78,7 @@ void getAddresses() {
   }
 
   for (uint8_t i = 0; i < arrayLen(floatAddr); i++) {
-    floatAddr[i] = flash.getAddress(sizeof(float));
+    floatAddr[i] = fram.getAddress(sizeof(float));
     Serial.print("Float Address ");
     Serial.print(i);
     Serial.print(" : ");
@@ -86,7 +86,7 @@ void getAddresses() {
   }
 
   for (uint8_t i = 0; i < arrayLen(strAddr); i++) {
-    strAddr[i] = flash.getAddress(flash.sizeofStr(testStr[i]));
+    strAddr[i] = fram.getAddress(fram.sizeofStr(testStr[i]));
     Serial.print("String Address ");
     Serial.print(i);
     Serial.print(" : ");
@@ -97,7 +97,7 @@ void getAddresses() {
 // Function to write data
 void writeData() {
   for (uint8_t i = 0; i < arrayLen(byteAddr); i++) {
-    if (flash.writeByte(byteAddr[i], testByte[i])) {
+    if (fram.writeByte(byteAddr[i], testByte[i])) {
       Serial.print(testByte[i]);
       Serial.print(" written to ");
       Serial.println(byteAddr[i]);
@@ -105,7 +105,7 @@ void writeData() {
   }
 
   for (uint8_t i = 0; i < arrayLen(floatAddr); i++) {
-    if (flash.writeFloat(floatAddr[i], testFloat[i])) {
+    if (fram.writeFloat(floatAddr[i], testFloat[i])) {
       Serial.print(testFloat[i]);
       Serial.print(" written to ");
       Serial.println(floatAddr[i]);
@@ -113,7 +113,7 @@ void writeData() {
   }
 
   for (uint8_t i = 0; i < arrayLen(strAddr); i++) {
-    if (flash.writeStr(strAddr[i], testStr[i])) {
+    if (fram.writeStr(strAddr[i], testStr[i])) {
       Serial.print(testStr[i]);
       Serial.print(" written to ");
       Serial.println(strAddr[i]);

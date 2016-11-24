@@ -77,8 +77,8 @@
   #define xfer(n)   SPI.transfer(n)
 #endif
 
-#define LIBVER 2
-#define LIBSUBVER 5
+#define LIBVER 0
+#define LIBSUBVER 1
 #define BUGFIXVER 0
 
 #if defined (ARDUINO_ARCH_SAM)
@@ -104,39 +104,40 @@ public:
   uint32_t getMaxPage(void);
   //-------------------------------------------Write / Read Bytes-------------------------------------------//
   bool     writeByte(uint32_t address, uint8_t data, bool errorCheck = true);
-  uint8_t  readByte(uint32_t address, bool fastRead = false);
+  uint8_t  readByte(uint32_t address);
   //----------------------------------------Write / Read Byte Arrays----------------------------------------//
   bool     writeByteArray(uint32_t address, uint8_t *data_buffer, uint16_t bufferSize, bool errorCheck = true);
-  bool     readByteArray(uint32_t address, uint8_t *data_buffer, uint16_t bufferSize, bool fastRead = false);
+  bool     readByteArray(uint32_t address, uint8_t *data_buffer, uint16_t bufferSize);
   //-------------------------------------------Write / Read Chars-------------------------------------------//
   bool     writeChar(uint32_t address, int8_t data, bool errorCheck = true);
-  int8_t   readChar(uint32_t address, bool fastRead = false);
+  int8_t   readChar(uint32_t address);
   //----------------------------------------Write / Read Char Arrays----------------------------------------//
   bool     writeCharArray(uint32_t address, char *data_buffer, uint16_t bufferSize, bool errorCheck = true);
-  bool     readCharArray(uint32_t address, char *data_buffer, uint16_t buffer_size, bool fastRead = false);
+  bool     readCharArray(uint32_t address, char *data_buffer, uint16_t buffer_size);
   //------------------------------------------Write / Read Shorts------------------------------------------//
   bool     writeShort(uint32_t address, int16_t data, bool errorCheck = true);
-  int16_t  readShort(uint32_t address, bool fastRead = false);
+  int16_t  readShort(uint32_t address);
   //-------------------------------------------Write / Read Words-------------------------------------------//
   bool     writeWord(uint32_t address, uint16_t data, bool errorCheck = true);
-  uint16_t readWord(uint32_t address, bool fastRead = false);
+  uint16_t readWord(uint32_t address);
   //-------------------------------------------Write / Read Longs-------------------------------------------//
   bool     writeLong(uint32_t address, int32_t data, bool errorCheck = true);
-  int32_t  readLong(uint32_t address, bool fastRead = false);
+  int32_t  readLong(uint32_t address);
   //--------------------------------------Write / Read Unsigned Longs---------------------------------------//
   bool     writeULong(uint32_t address, uint32_t data, bool errorCheck = true);
-  uint32_t readULong(uint32_t address, bool fastRead = false);
+  uint32_t readULong(uint32_t address);
   //-------------------------------------------Write / Read Floats------------------------------------------//
   bool     writeFloat(uint32_t address, float data, bool errorCheck = true);
-  float    readFloat(uint32_t address, bool fastRead = false);
+  float    readFloat(uint32_t address);
   //------------------------------------------Write / Read Strings------------------------------------------//
   bool     writeStr(uint32_t address, String &inputStr, bool errorCheck = true);
-  bool     readStr(uint32_t address, String &outStr, bool fastRead = false);
+  bool     readStr(uint32_t address, String &outStr);
   //------------------------------------------Write / Read Anything-----------------------------------------//
   template <class T> bool writeAnything(uint32_t address, const T& value, bool errorCheck = true);
-  template <class T> bool readAnything(uint32_t address, T& value, bool fastRead = false);
+  template <class T> bool readAnything(uint32_t address, T& value);
   //--------------------------------------------Erase functions---------------------------------------------//
-  bool     eraseSector(uint32_t address, uint32_t sectorSize);
+  bool     eraseSector(uint32_t address, uint32_t sectorSize = 0x01);
+  bool     eraseChip(void);
   //-------------------------------------Public Arduino Due Functions---------------------------------------//
 #if defined (ARDUINO_ARCH_SAM)
   uint32_t dueFreeRAM(void);
@@ -180,7 +181,7 @@ private:
   bool     _notPrevWritten(uint32_t address, uint32_t size = 1);
   bool     _writeEnable(uint32_t timeout = 10L);
   bool     _writeDisable(void);
-  bool     _getJedecId(uint8_t *b1, uint8_t *b2, uint8_t *b3);
+  bool     _getJedecId(uint8_t *b1, uint8_t *b2, uint8_t *b3, uint8_t *b4);
   bool     _chipID(void);
   bool     _transferAddress(void);
   bool     _addressCheck(uint32_t address, uint32_t size = 1);
@@ -198,8 +199,8 @@ private:
   SPISettings _settings;
 #endif
 #ifndef CHIPSIZE
-  const uint16_t devType[11]   = {0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x43};
-  const uint32_t memSize[11]  = {KB64, KB128, KB256, KB512, MB1, MB2, MB4, MB8, MB16, MB32, MB8}; //memory size in Kilo and Mega bits
+  const uint16_t devType[1]   = {0x04};
+  const uint32_t memSize[1]  = {KB64}; //memory size in Kilo and Mega bits
 #endif
 };
 
@@ -215,8 +216,8 @@ template <class T> bool SPIFRAM::writeAnything(uint32_t address, const T& value,
     return false;
   }
   const uint8_t* p = ((const uint8_t*)(const void*)&value);
-  _beginSPI(PAGEPROG)
-  for (uint16_t i = 0; i < writeBufSz; ++i) {
+  _beginSPI(PAGEPROG);
+  for (uint16_t i = 0; i < sizeof(value); ++i) {
     _nextByte(*p++);
   }
   CHIP_DESELECT
@@ -240,7 +241,7 @@ template <class T> bool SPIFRAM::writeAnything(uint32_t address, const T& value,
 //    1. address --> Any address from 0 to maxAddress
 //    2. T& value --> Variable to return data into
 //    2. fastRead --> defaults to false - executes _beginFastRead() if set to true
-template <class T> bool SPIFRAM::readAnything(uint32_t address, T& value, bool fastRead) {
+template <class T> bool SPIFRAM::readAnything(uint32_t address, T& value) {
   if (!_prep(READDATA, address, sizeof(value)))
     return false;
 
@@ -255,7 +256,7 @@ template <class T> bool SPIFRAM::readAnything(uint32_t address, T& value, bool f
 
 // Private template to check for errors in writing to FRAM memory
 template <class T> bool SPIFRAM::_writeErrorCheck(uint32_t address, const T& value) {
-if (!_prep(READDATA, address, sizeof(value)) && !_notBusy()) {
+if (!_prep(READDATA, address, sizeof(value))) {
   return false;
 }
 

@@ -8,7 +8,7 @@
   |                                                                  16.11.2016                                                                   |
   |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
   |                                                                                                                                               |
-  |                        This program shows the method of reading a string from the console and saving it to flash memory                       |
+  |                        This program shows the method of reading a string from the console and saving it to fram memory                       |
   |                                                                                                                                               |
   |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
 */
@@ -30,7 +30,7 @@ byte strOffset;
 #define RANDPIN A0
 #endif
 
-SPIFRAM flash;
+SPIFRAM fram;
 
 bool readSerialStr(String &inputStr);
 
@@ -40,7 +40,7 @@ void setup() {
   while (!Serial) ; // Wait for Serial monitor to open
 #endif
 
-  flash.begin();
+  fram.begin();
 
 #if defined (ARDUINO_ARCH_ESP32)
   randomSeed(65535537);
@@ -50,7 +50,7 @@ void setup() {
   strPage = random(0, 4095);
   strOffset = random(0, 255);
   String inputString = "This is a test String";
-  flash.writeStr(strPage, strOffset, inputString);
+  fram.writeStr(strPage, strOffset, inputString);
   Serial.print(F("Written string: "));
   Serial.print(inputString);
   Serial.print(F(" to page "));
@@ -58,7 +58,7 @@ void setup() {
   Serial.print(F(", at offset "));
   Serial.println(strOffset);
   String outputString = "";
-  if (flash.readStr(strPage, strOffset, outputString)) {
+  if (fram.readStr(strPage, strOffset, outputString)) {
     Serial.print(F("Read string: "));
     Serial.print(outputString);
     Serial.print(F(" from page "));
@@ -66,7 +66,7 @@ void setup() {
     Serial.print(F(", at offset "));
     Serial.println(strOffset);
   }
-  while (!flash.eraseSector(strPage, 0));
+  while (!fram.eraseSector(strPage, 0));
 }
 
 void loop() {

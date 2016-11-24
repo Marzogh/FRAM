@@ -68,7 +68,7 @@ bool SPIFRAM::_prep(uint8_t opcode, uint32_t address, uint32_t size) {
     if (!_addressCheck(address, size)) {
       return false;
     }
-    if(!_notBusy() || !_writeEnable()){
+    if(!_writeEnable()){
       return false;
     }
     #ifndef HIGHSPEED
@@ -81,9 +81,6 @@ bool SPIFRAM::_prep(uint8_t opcode, uint32_t address, uint32_t size) {
 
     default:
     if (!_addressCheck(address, size)) {
-      return false;
-    }
-    if (!_notBusy()){
       return false;
     }
     return true;
@@ -129,12 +126,6 @@ bool SPIFRAM::_beginSPI(uint8_t opcode) {
   }
   CHIP_SELECT
   switch (opcode) {
-    case FASTREAD:
-    _nextByte(opcode);
-    _nextByte(DUMMYBYTE);
-    _transferAddress();
-    break;
-
     case READDATA:
     _nextByte(opcode);
     _transferAddress();
@@ -258,31 +249,29 @@ bool SPIFRAM::_writeDisable(void) {
 }
 
 //Checks for presence of chip by requesting JEDEC ID
-bool SPIFRAM::_getJedecId(uint8_t *b1, uint8_t *b2, uint8_t *b3) {
-  if(!_notBusy())
-  	return false;
+bool SPIFRAM::_getJedecId(uint8_t *b1, uint8_t *b2, uint8_t *b3, uint8_t *b4) {
   _beginSPI(JEDECID);
-	*b1 = _nextByte(NULLBYTE);		// manufacturer id
-	*b2 = _nextByte(NULLBYTE);		// manufacturer id
-	*b3 = _nextByte(NULLBYTE);		// capacity
+  *b1 = _nextByte(NULLBYTE);		// manufacturer id
+  *b2 = _nextByte(NULLBYTE);		// continuation code
+  *b3 = _nextByte(NULLBYTE);		// capacity
+  *b4 = _nextByte(NULLBYTE);		// product id
   _endSPI();
   return true;
 }
 
 //Identifies the chip
 bool SPIFRAM::_chipID(void) {
-#ifndef CHIPSIZE
+#ifdef CHIPSIZE
   // If a custom chip size is defined
-  capacity = CHIPSIZE;
-  maxPage = capacity/PAGESIZE;
+  capacity = CHIPSIZE/8;
   return true;
 #else
   // If no custom chip size declared, ID the chip
   //Get Manfucturer/Device ID so the library can identify the chip
-  uint8_t manID, capID, devID ;
-  _getJedecId(&manID, &capID, &devID);
+  uint8_t manID, contID, capID, devID ;
+  _getJedecId(&manID, &contID, &capID, &devID);
 
-  if (manID != WINBOND_MANID && manID != MICROCHIP_MANID){		//If the chip is not a Winbond Chip
+  if (manID != FUJITSU_MANID) {		//If the chip is not a Winbond Chip
     errorcode = UNKNOWNCHIP;		//Error code for unidentified chip
     #ifdef RUNDIAGNOSTIC
     _troubleshoot();
@@ -294,20 +283,16 @@ bool SPIFRAM::_chipID(void) {
   for (uint8_t i = 0; i < sizeof(devType); i++)
   {
     if (devID == devType[i]) {
-      capacity = memSize[i];
-      name = chipName[i];
-      _eraseTime = eraseTime[i];
-      }
-    }
-    if (capacity == 0) {
-      errorcode = UNKNOWNCAP;		//Error code for unidentified capacity
-      #ifdef RUNDIAGNOSTIC
-      _troubleshoot();
-      #endif
-      while(1);
+      capacity = (memSize[i])/8;
     }
   }
-  maxPage = capacity/PAGESIZE;
+  if (capacity == 0) {
+    errorcode = UNKNOWNCAP;		//Error code for unidentified capacity
+    #ifdef RUNDIAGNOSTIC
+    _troubleshoot();
+    #endif
+    while(1);
+  }
   return true;
 #endif
 }
@@ -390,11 +375,6 @@ uint32_t SPIFRAM::getCapacity(void) {
 	return capacity;
 }
 
-//Returns maximum number of pages
-uint32_t SPIFRAM::getMaxPage(void) {
-	return maxPage;
-}
-
 //Returns the library version as a string
 bool SPIFRAM::libver(uint8_t *b1, uint8_t *b2, uint8_t *b3) {
   *b1 = LIBVER;
@@ -403,22 +383,14 @@ bool SPIFRAM::libver(uint8_t *b1, uint8_t *b2, uint8_t *b3) {
   return true;
 }
 
-//Checks for and initiates the chip by requesting the Manufacturer ID which is returned as a 16 bit int
-uint16_t SPIFRAM::getManID(void) {
-	uint8_t b1, b2;
-    _getManId(&b1, &b2);
-    uint32_t id = b1;
-    id = (id << 8)|(b2 << 0);
-    return id;
-}
-
 //Checks for and initiates the chip by requesting JEDEC ID which is returned as a 32 bit int
 uint32_t SPIFRAM::getJEDECID(void) {
-	uint8_t b1, b2, b3;
-    _getJedecId(&b1, &b2, &b3);
+	uint8_t b1, b2, b3, b4;
+    _getJedecId(&b1, &b2, &b3, &b4);
     uint32_t id = b1;
     id = (id << 8)|(b2 << 0);
     id = (id << 8)|(b3 << 0);
+    id = (id << 8)|(b4 << 0);
     return id;
 }
 
@@ -511,7 +483,6 @@ bool  SPIFRAM::readCharArray(uint32_t address, char *data_buffer, uint16_t buffe
 // Reads an unsigned int of data from a specific address.
 // Takes one argument -
 //		1. address --> Any address from 0 to maxAddress
-//		2. fastRead --> defaults to false - executes _beginFastRead() if set to true
 uint16_t SPIFRAM::readWord(uint32_t address) {
   const uint8_t size = sizeof(uint16_t);
 	union
@@ -618,7 +589,7 @@ bool SPIFRAM::readStr(uint32_t address, String &outStr) {
   address+=(sizeof(strLen));
   char outputChar[strLen];
 
-  readCharArray(address, outputChar, strLen, fastRead);
+  readCharArray(address, outputChar, strLen);
 
   outStr = String(outputChar);
   return true;
@@ -696,9 +667,6 @@ bool SPIFRAM::writeByteArray(uint32_t address, uint8_t *data_buffer, uint16_t bu
     return true;
   }
   else {
-    if (!_notBusy()) {
-      return false;
-    }
     _currentAddress = address;
     CHIP_SELECT
     _nextByte(READDATA);
@@ -724,7 +692,7 @@ bool SPIFRAM::writeCharArray(uint32_t address, char *data_buffer, uint16_t buffe
   }
 
   _beginSPI(PAGEPROG);
-  _nextBuf(PAGEPROG, &data_buffer[0], bufferSize);
+  _nextBuf(PAGEPROG, (uint8_t*) &data_buffer[0], bufferSize);
   CHIP_DESELECT
 
   /*_beginSPI(PAGEPROG);
@@ -738,9 +706,6 @@ bool SPIFRAM::writeCharArray(uint32_t address, char *data_buffer, uint16_t buffe
     return true;
   }
   else {
-    if (!_notBusy()) {
-      return false;
-    }
     _currentAddress = address;
     CHIP_SELECT
     _nextByte(READDATA);
@@ -951,17 +916,35 @@ bool SPIFRAM::writeStr(uint32_t address, String &inputStr, bool errorCheck) {
 }
 
 
-//Erases one 4k sector.
+//Erases a sector of predetermined size - defaults to one byte
 // Takes the address & size fo sector to be erased as the arguments and erases the sector of
 // the requested size, starting the address provided.
+// Sector size can be indicated in bytes
 bool SPIFRAM::eraseSector(uint32_t address, uint32_t sectorSize) {
-	if(!_notBusy()||!_writeEnable())
+	if(!_writeEnable())
  		return false;
 
 	_beginSPI(PAGEPROG);
   _currentAddress = address;
   _transferAddress();
   for(uint16_t i = 0; i < sectorSize; i++) {
+    _nextByte(EMPTYCELL);
+  }
+  _endSPI();
+
+	return true;
+}
+
+//Erases the entire chip
+bool SPIFRAM::eraseChip(void) {
+	if(!_writeEnable()) {
+ 		return false;
+  }
+
+	_beginSPI(PAGEPROG);
+  _currentAddress = 0x00;
+  _transferAddress();
+  for(uint16_t i = 0; i < capacity; i++) {
     _nextByte(EMPTYCELL);
   }
   _endSPI();

@@ -30,20 +30,20 @@
 #define RANDPIN A0
 #endif
 
-SPIFRAM flash;
+SPIFRAM fram;
 
 void setup() {
   Serial.begin(BAUD_RATE);
 #if defined (ARDUINO_ARCH_SAMD) || (__AVR_ATmega32U4__)
   while (!Serial) ; // Wait for Serial monitor to open
 #endif
-  Serial.print(F("Initialising Flash memory"));
+  Serial.print(F("Initialising fram memory"));
   for (int i = 0; i < 10; ++i)
   {
     Serial.print(F("."));
   }
   Serial.println();
-  flash.begin();
+  fram.begin();
   Serial.println();
   Serial.println();
 

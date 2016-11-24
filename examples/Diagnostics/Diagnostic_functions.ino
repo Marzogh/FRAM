@@ -24,7 +24,7 @@ void getID() {
   Serial.print(F("SPIFRAM Library version"));
 #ifdef LIBVER
   uint8_t _ver, _subver, _bugfix;
-  flash.libver(&_ver, &_subver, &_bugfix);
+  fram.libver(&_ver, &_subver, &_bugfix);
   clearprintBuffer(&printBuffer[1]);
   sprintf(printBuffer, ": %d.%d.%d", _ver, _subver, _bugfix);
   Serial.println(printBuffer);
@@ -40,10 +40,10 @@ void getID() {
   printLine();
   uint8_t b1, b2;
   uint16_t b3;
-  uint32_t JEDEC = flash.getJEDECID();
-  uint32_t maxPage = flash.getMaxPage();
-  uint16_t _name = flash.getChipName();
-  uint32_t capacity = flash.getCapacity();
+  uint32_t JEDEC = fram.getJEDECID();
+  uint32_t maxPage = fram.getMaxPage();
+  uint16_t _name = fram.getChipName();
+  uint32_t capacity = fram.getCapacity();
   b1 = (JEDEC >> 16);
   b2 = (JEDEC >> 8);
   b3 = (JEDEC >> 0);
@@ -53,7 +53,7 @@ void getID() {
 
   if (b1 == WINBOND) {
     //---------------------------------------------------------------------------------------------//
-    //--------------------------Prints the name of the Flash chip in use---------------------------//
+    //--------------------------Prints the name of the fram chip in use---------------------------//
     //---------------------------------------------------------------------------------------------//
     for (uint8_t i = 0; i < 76; i++) {
       Serial.print(F(" "));
@@ -178,13 +178,13 @@ void byteDiag(void) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   addr = random(0, 0xFFFFF);
   startTime = micros();
-  flash.writeByte(addr, _byte);
+  fram.writeByte(addr, _byte);
   wTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                         Read                                                                        //
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   startTime = micros();
-  _b = flash.readByte(addr);
+  _b = fram.readByte(addr);
   rTime = micros() - startTime;
   //Print result
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -205,13 +205,13 @@ void byteDiag(void) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   addr = random(0, 0xFFFFF);
   startTime = micros();
-  flash.writeByte(addr, _byte, false);
+  fram.writeByte(addr, _byte, false);
   wTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                      Fast Read                                                                      //
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   startTime = micros();
-  _b = flash.readByte(addr, true);
+  _b = fram.readByte(addr, true);
   rTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                     Print Result                                                                    //
@@ -239,13 +239,13 @@ void charDiag(void) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   addr = random(0, 0xFFFFF);
   startTime = micros();
-  flash.writeChar(addr, _char);
+  fram.writeChar(addr, _char);
   wTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                         Read                                                                        //
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   startTime = micros();
-  _c = flash.readChar(addr);
+  _c = fram.readChar(addr);
   rTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                     Print Result                                                                    //
@@ -265,13 +265,13 @@ void charDiag(void) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   addr = random(0, 0xFFFFF);
   startTime = micros();
-  flash.writeChar(addr, _char, false);
+  fram.writeChar(addr, _char, false);
   wTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                      Fast Read                                                                      //
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   startTime = micros();
-  _c = flash.readChar(addr, true);
+  _c = fram.readChar(addr, true);
   rTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                     Print Result                                                                    //
@@ -299,13 +299,13 @@ void wordDiag(void) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   addr = random(0, 0xFFFFF);
   startTime = micros();
-  flash.writeWord(addr, _word);
+  fram.writeWord(addr, _word);
   wTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                         Read                                                                        //
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   startTime = micros();
-  _w = flash.readWord(addr);
+  _w = fram.readWord(addr);
   rTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                     Print Result                                                                    //
@@ -325,13 +325,13 @@ void wordDiag(void) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   addr = random(0, 0xFFFFF);
   startTime = micros();
-  flash.writeWord(addr, _word, false);
+  fram.writeWord(addr, _word, false);
   wTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                      Fast Read                                                                      //
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   startTime = micros();
-  _w = flash.readWord(addr, true);
+  _w = fram.readWord(addr, true);
   rTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                     Print Result                                                                    //
@@ -359,13 +359,13 @@ void shortDiag(void) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   addr = random(0, 0xFFFFF);
   startTime = micros();
-  flash.writeShort(addr, _short);
+  fram.writeShort(addr, _short);
   wTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                         Read                                                                        //
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   startTime = micros();
-  _s = flash.readShort(addr);
+  _s = fram.readShort(addr);
   rTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                     Print Result                                                                    //
@@ -385,13 +385,13 @@ void shortDiag(void) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   addr = random(0, 0xFFFFF);
   startTime = micros();
-  flash.writeShort(addr, _short, false);
+  fram.writeShort(addr, _short, false);
   wTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                      Fast Read                                                                      //
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   startTime = micros();
-  _s = flash.readShort(addr, true);
+  _s = fram.readShort(addr, true);
   rTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                     Print Result                                                                    //
@@ -419,13 +419,13 @@ void uLongDiag(void) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   addr = random(0, 0xFFFFF);
   startTime = micros();
-  flash.writeULong(addr, _uLong);
+  fram.writeULong(addr, _uLong);
   wTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                         Read                                                                        //
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   startTime = micros();
-  _uL = flash.readULong(addr);
+  _uL = fram.readULong(addr);
   rTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                     Print Result                                                                    //
@@ -445,13 +445,13 @@ void uLongDiag(void) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   addr = random(0, 0xFFFFF);
   startTime = micros();
-  flash.writeULong(addr, _uLong, false);
+  fram.writeULong(addr, _uLong, false);
   wTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                      Fast Read                                                                      //
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   startTime = micros();
-  _uL = flash.readULong(addr, true);
+  _uL = fram.readULong(addr, true);
   rTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                     Print Result                                                                    //
@@ -479,13 +479,13 @@ void longDiag(void) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   addr = random(0, 0xFFFFF);
   startTime = micros();
-  flash.writeLong(addr, _long);
+  fram.writeLong(addr, _long);
   wTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                         Read                                                                        //
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   startTime = micros();
-  _l = flash.readLong(addr);
+  _l = fram.readLong(addr);
   rTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                     Print Result                                                                    //
@@ -505,13 +505,13 @@ void longDiag(void) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   addr = random(0, 0xFFFFF);
   startTime = micros();
-  flash.writeLong(addr, _long, false);
+  fram.writeLong(addr, _long, false);
   wTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                      Fast Read                                                                      //
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   startTime = micros();
-  _l = flash.readLong(addr, true);
+  _l = fram.readLong(addr, true);
   rTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                     Print Result                                                                    //
@@ -539,14 +539,14 @@ void floatDiag(void) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   addr = random(0, 0xFFFFF);
   startTime = micros();
-  if (flash.writeFloat(addr, _float)) {
+  if (fram.writeFloat(addr, _float)) {
     wTime = micros() - startTime;
   }
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                         Read                                                                        //
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   startTime = micros();
-  _f = flash.readFloat(addr);
+  _f = fram.readFloat(addr);
   rTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                     Print Result                                                                    //
@@ -566,14 +566,14 @@ void floatDiag(void) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   addr = random(0, 0xFFFFF);
   startTime = micros();
-  if (flash.writeFloat(addr, _float, false)) {
+  if (fram.writeFloat(addr, _float, false)) {
     wTime = micros() - startTime;
   }
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                      Fast Read                                                                      //
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   startTime = micros();
-  _f = flash.readFloat(addr, true);
+  _f = fram.readFloat(addr, true);
   rTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                     Print Result                                                                    //
@@ -601,14 +601,14 @@ void stringDiag(void) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   addr = random(0, 0xFFFFF);
   startTime = micros();
-  if (flash.writeStr(addr, _string)) {
+  if (fram.writeStr(addr, _string)) {
     wTime = micros() - startTime;
   }
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                         Read                                                                        //
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   startTime = micros();
-  if (flash.readStr(addr, _str)) {
+  if (fram.readStr(addr, _str)) {
     rTime = micros() - startTime;
   }
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -629,14 +629,14 @@ void stringDiag(void) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   addr = random(0, 0xFFFFF);
   startTime = micros();
-  if (flash.writeStr(addr, _string, false)) {
+  if (fram.writeStr(addr, _string, false)) {
     wTime = micros() - startTime;
   }
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                      Fast Read                                                                      //
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   startTime = micros();
-  if (flash.readStr(addr, _str, true)) {
+  if (fram.readStr(addr, _str, true)) {
     rTime = micros() - startTime;
   }
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -679,13 +679,13 @@ void structDiag(void) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   addr = random(0, 0xFFFFF);
   startTime = micros();
-  flash.writeAnything(addr, inputStruct);
+  fram.writeAnything(addr, inputStruct);
   wTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                         Read                                                                        //
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   startTime = micros();
-  flash.readAnything(addr, outputStruct);
+  fram.readAnything(addr, outputStruct);
   rTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                     Print Result                                                                    //
@@ -705,13 +705,13 @@ void structDiag(void) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   addr = random(0, 0xFFFFF);
   startTime = micros();
-  flash.writeAnything(addr, inputStruct, false);
+  fram.writeAnything(addr, inputStruct, false);
   wTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                      Fast Read                                                                      //
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   startTime = micros();
-  flash.readAnything(addr, outputStruct, true);
+  fram.readAnything(addr, outputStruct, true);
   rTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                     Print Result                                                                    //
@@ -740,9 +740,9 @@ void pageDiag(void) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                        Write                                                                        //
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-  addr = random(0, flash.getMaxPage());
+  addr = random(0, fram.getMaxPage());
   startTime = micros();
-  while (!flash.writeByteArray(addr, pageBuffer, PAGESIZE));
+  while (!fram.writeByteArray(addr, pageBuffer, PAGESIZE));
   wTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                 Read & Print Result                                                                 //
@@ -757,7 +757,7 @@ void pageDiag(void) {
   printTab(2, 1);
   startTime = micros();
 
-  flash.readByteArray(addr, pageBuffer, PAGESIZE);
+  fram.readByteArray(addr, pageBuffer, PAGESIZE);
   rTime = micros() - startTime;
   bool _pass;
   for (uint16_t i = 0; i < 256; i++) {
@@ -788,9 +788,9 @@ void pageDiag(void) {
   for (int i = 0; i < 256; ++i) {
     pageBuffer[i] = i;
   }
-  addr = random(0, flash.getMaxPage());
+  addr = random(0, fram.getMaxPage());
   startTime = micros();
-  flash.writeByteArray(addr, pageBuffer, PAGESIZE, false);
+  fram.writeByteArray(addr, pageBuffer, PAGESIZE, false);
   wTime = micros() - startTime;
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   //                                                                Fast Read & Print Result                                                             //
@@ -799,7 +799,7 @@ void pageDiag(void) {
     pageBuffer[i] = 0;
   }
   startTime = micros();
-  flash.readByteArray(addr, pageBuffer, PAGESIZE, true);
+  fram.readByteArray(addr, pageBuffer, PAGESIZE, true);
   rTime = micros() - startTime;
   printTime(wTime, rTime);
   Serial.println();
@@ -822,7 +822,7 @@ void powerFuncDiag(void) {
   printLine();
   Serial.flush();
 
-  uint32_t capacity = flash.getCapacity();
+  uint32_t capacity = fram.getCapacity();
   if (!Serial)
     Serial.begin(115200);
   uint32_t stringAddress1 = random(0, capacity);
@@ -832,11 +832,11 @@ void powerFuncDiag(void) {
   printTab(5, 0);
   Serial.print(F("powerDown"));
   printTab(2, 2);
-  if (flash.writeStr(stringAddress1, _string)) {
+  if (fram.writeStr(stringAddress1, _string)) {
     wTime = micros();
-    if (flash.powerDown()) {
+    if (fram.powerDown()) {
       wTime = micros() - wTime;
-      if (!flash.writeStr(stringAddress2, _string))
+      if (!fram.writeStr(stringAddress2, _string))
         printPass();
       else
         printFail();
@@ -850,9 +850,9 @@ void powerFuncDiag(void) {
   Serial.print(F("powerUp"));
   printTab(3, 2);
   wTime = micros();
-  if (flash.powerUp()) {
+  if (fram.powerUp()) {
     wTime = micros() - wTime;
-    if (flash.writeStr(stringAddress3, _string)) {
+    if (fram.writeStr(stringAddress3, _string)) {
       printPass();
     }
     else {
@@ -867,7 +867,7 @@ void powerFuncDiag(void) {
   Serial.print(F("eraseSector"));
   wTime = micros();
   printTab(2, 2);
-  if (flash.eraseSector(stringAddress1)) {
+  if (fram.eraseSector(stringAddress1)) {
     wTime = micros() - wTime;
     printPass();
   }
@@ -883,7 +883,7 @@ void powerFuncDiag(void) {
   Serial.print(F("eraseBlock32K"));
   wTime = micros();
   printTab(2, 2);
-  if (flash.eraseBlock32K(stringAddress2)) {
+  if (fram.eraseBlock32K(stringAddress2)) {
     wTime = micros() - wTime;
     printPass();
   }
@@ -899,7 +899,7 @@ void powerFuncDiag(void) {
   Serial.print(F("eraseBlock64K"));
   wTime = micros();
   printTab(2, 2);
-  if (flash.eraseBlock64K(stringAddress3)) {
+  if (fram.eraseBlock64K(stringAddress3)) {
     wTime = micros() - wTime;
     printPass();
   }
@@ -915,7 +915,7 @@ void powerFuncDiag(void) {
   Serial.print(F("eraseChip"));
   printTab(2, 2);
   wTime = micros();
-  if (flash.eraseChip()) {
+  if (fram.eraseChip()) {
     wTime = micros() - wTime;
     printPass();
   }

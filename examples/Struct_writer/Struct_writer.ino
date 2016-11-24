@@ -8,7 +8,7 @@
   |                                                                  16.11.2016                                                                   |
   |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
   |                                                                                                                                               |
-  |                        This program writes a struct to a random location on your flash memory chip and reads it back.                         |
+  |                        This program writes a struct to a random location on your fram memory chip and reads it back.                         |
   |        Uncomment #define SENSOR below to get real world readings. Real world readings require a Light dependant resistor hooked up to A0.     |
   |                   For information on how to hook up an LDR to an Arduino, please refer to Adafruit's excellent tutorial at                    |
   |                                          https://learn.adafruit.com/photocells/using-a-photocell                                              |
@@ -17,6 +17,8 @@
 */
 
 #include<SPIFRAM.h>
+
+#define CHIPSIZE KB64
 
 #if defined(ARDUINO_SAMD_ZERO) && defined(SERIAL_PORT_USBVIRTUAL)
 // Required for Serial on Zero based boards
@@ -45,7 +47,7 @@
 
 
 
-SPIFRAM flash;
+SPIFRAM fram;
 
 
 struct Configuration {
@@ -62,23 +64,22 @@ void setup() {
 #if defined (ARDUINO_SAMD_ZERO) || (__AVR_ATmega32U4__)
   while (!Serial) ; // Wait for Serial monitor to open
 #endif
-  #if defined (ARDUINO_ARCH_ESP32)
+#if defined (ARDUINO_ARCH_ESP32)
   randomSeed(65535537);
 #else
   randomSeed(analogRead(LDR));
 #endif
-  Serial.print(F("Initialising Flash memory"));
+  Serial.print(F("Initialising fram memory"));
   for (int i = 0; i < 10; ++i)
   {
     Serial.print(F("."));
   }
   Serial.println();
   Serial.println();
-  flash.begin();
+  fram.begin();
 
-
-  uint16_t pageNo = random(0, 4095);
-  uint8_t offset = random(0, 255);
+  uint32_t _cap = fram.getCapacity();
+  uint32_t _addr = random(0, _cap);
 
 #ifndef SENSOR
   configuration.lux = 98.43;
@@ -92,7 +93,7 @@ void setup() {
   readLDR();
 #endif
 
-  if (flash.writeAnything(pageNo, offset, configuration))
+  if (fram.writeAnything(_addr, configuration))
     Serial.println ("Data write successful");
   else
     Serial.println ("Data write failed");
@@ -117,8 +118,8 @@ void setup() {
   Serial.println(configuration.light);
   Serial.println(configuration.adc);
   Serial.println();
-  flash.readAnything(pageNo, offset, configuration);
-  flash.eraseSector(pageNo, 0);
+  fram.readAnything(_addr, configuration);
+  fram.eraseSector(_addr, sizeof(configuration));
 
   Serial.println("After reading");
   Serial.println(configuration.lux);
