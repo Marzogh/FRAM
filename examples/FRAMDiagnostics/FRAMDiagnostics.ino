@@ -1,8 +1,8 @@
 /*
   |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
-  |                                                                Diagnostics.ino                                                                |
+  |                                                             FRAMDiagnostics.ino                                                               |
   |                                                               SPIFRAM library                                                                 |
-  |                                                                   v 0.0.1b                                                                    |
+  |                                                                   v 1.0.0                                                                     |
   |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
   |                                                                    Marzogh                                                                    |
   |                                                                  30.09.2016                                                                   |
@@ -16,6 +16,7 @@
 */
 
 #include<SPIFRAM.h>
+#define CHIPSIZE KB64
 
 #if defined(ARDUINO_SAMD_ZERO) && defined(SERIAL_PORT_USBVIRTUAL)
 // Required for Serial on Zero based boards
@@ -43,7 +44,7 @@ void setup() {
     Serial.print(F("."));
   }
   Serial.println();
-  fram.begin();
+  fram.begin(CHIPSIZE);
   Serial.println();
   Serial.println();
 

@@ -1,4 +1,4 @@
-/* Arduino SPIFRAM Library v 0.0.1b
+/* Arduino SPIFRAM Library v 1.0.0
  * Copyright (C) 2015 by Prajwal Bhattaram
  * Modified by Prajwal Bhattaram - 30/09/2016
  *

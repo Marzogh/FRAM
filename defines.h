@@ -1,4 +1,4 @@
-/* Arduino SPIFRAM Library v 0.0.1b
+/* Arduino SPIFRAM Library v 1.0.0
  * Copyright (C) 2015 by Prajwal Bhattaram
  * Modified by Prajwal Bhattaram - 13/11/2016
  *
@@ -73,12 +73,12 @@
 //                          Definitions                               //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 #define FUJITSU_MANID 0x04
-#define EMPTYCELL     0xFF
+#define EMPTYCELL     0x00
 
 #if defined (ARDUINO_ARCH_ESP32)
 #define SPI_CLK       20000000
 #else
-#define SPI_CLK       40000000       //Hex equivalent of 40MHz
+#define SPI_CLK       20000000       //Hex equivalent of 40MHz
 #endif
 
 #define WRTEN         0x02

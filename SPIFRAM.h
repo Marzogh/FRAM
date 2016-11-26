@@ -1,4 +1,4 @@
-/* Arduino SPIFRAM Library v 0.0.1b
+/* Arduino SPIFRAM Library v 1.0.0
  * Copyright (C) 2015 by Prajwal Bhattaram
  * Modified by Prajwal Bhattaram - 13/11/2016
  *
@@ -94,7 +94,7 @@
 //                                                                    //
 //      Error codes will be generated and returned on functions       //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-#define RUNDIAGNOSTIC                                               //
+//#define RUNDIAGNOSTIC                                               //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 //   Uncomment the code below to increase the speed of the library    //
@@ -123,14 +123,14 @@ public:
   bool     writeByte(uint32_t address, uint8_t data, bool errorCheck = true);
   uint8_t  readByte(uint32_t address);
   //----------------------------------------Write / Read Byte Arrays----------------------------------------//
-  bool     writeByteArray(uint32_t address, uint8_t *data_buffer, uint16_t bufferSize, bool errorCheck = true);
-  bool     readByteArray(uint32_t address, uint8_t *data_buffer, uint16_t bufferSize);
+  bool     writeByteArray(uint32_t address, uint8_t *data_buffer, uint32_t bufferSize, bool errorCheck = true);
+  bool     readByteArray(uint32_t address, uint8_t *data_buffer, uint32_t bufferSize);
   //-------------------------------------------Write / Read Chars-------------------------------------------//
   bool     writeChar(uint32_t address, int8_t data, bool errorCheck = true);
   int8_t   readChar(uint32_t address);
   //----------------------------------------Write / Read Char Arrays----------------------------------------//
-  bool     writeCharArray(uint32_t address, char *data_buffer, uint16_t bufferSize, bool errorCheck = true);
-  bool     readCharArray(uint32_t address, char *data_buffer, uint16_t buffer_size);
+  bool     writeCharArray(uint32_t address, char *data_buffer, uint32_t bufferSize, bool errorCheck = true);
+  bool     readCharArray(uint32_t address, char *data_buffer, uint32_t buffer_size);
   //------------------------------------------Write / Read Shorts------------------------------------------//
   bool     writeShort(uint32_t address, int16_t data, bool errorCheck = true);
   int16_t  readShort(uint32_t address);
@@ -202,11 +202,11 @@ private:
   bool     _chipID(void);
   bool     _transferAddress(void);
   bool     _addressCheck(uint32_t address, uint32_t size = 1);
-  uint8_t  _nextByte(uint8_t data = NULLBYTE);
+  uint8_t  _nextByte(uint8_t opcode, uint8_t data = NULLBYTE);
   uint16_t _nextInt(uint16_t = NULLINT);
   void     _nextBuf(uint8_t opcode, uint8_t *data_buffer, uint32_t size);
   uint8_t  _readStat1(void);
-  template <class T> bool _writeErrorCheck(uint32_t address, const T& value);
+  template <class T> bool _writeErrorCheck(uint32_t address, const T& value, uint32_t _size = 0);
   //-------------------------------------------Private variables------------------------------------------//
   bool        pageOverflow, SPIBusState;
   volatile uint8_t *cs_port;
@@ -232,10 +232,11 @@ template <class T> bool SPIFRAM::writeAnything(uint32_t address, const T& value,
   if (!_prep(PAGEPROG, address, sizeof(value))) {
     return false;
   }
+  uint32_t _size = sizeof(value);
   const uint8_t* p = ((const uint8_t*)(const void*)&value);
   _beginSPI(PAGEPROG);
-  for (uint16_t i = 0; i < sizeof(value); ++i) {
-    _nextByte(*p++);
+  for (uint16_t i = 0; i < _size; ++i) {
+    _nextByte(PAGEPROG, *p++);
   }
   CHIP_DESELECT
   /*uint32_t size = sizeof(value);
@@ -265,19 +266,23 @@ template <class T> bool SPIFRAM::readAnything(uint32_t address, T& value) {
   uint8_t* p = (uint8_t*)(void*)&value;
   _beginSPI(READDATA);
   for (uint16_t i = 0; i < sizeof(value); i++) {
-    *p++ =_nextByte();
+    *p++ =_nextByte(READDATA);
   }
   _endSPI();
   return true;
 }
 
 // Private template to check for errors in writing to FRAM memory
-template <class T> bool SPIFRAM::_writeErrorCheck(uint32_t address, const T& value) {
-  uint32_t _size = sizeof(value);
+template <class T> bool SPIFRAM::_writeErrorCheck(uint32_t address, const T& value, uint32_t _size) {
+  if (_size == 0) {
+    uint32_t _sz = sizeof(value);
+  }
+  else {
+    uint32_t _sz = _size;
+  }
   const byte* p = (const byte*)(const void*)&value;
-  _currentAddress = address;
   _beginSPI(READDATA);
-  for(uint16_t i = 0; i < _size;i++)
+  for(uint16_t i = 0; i < _size; i++)
   {
       if(*p++ != _nextByte(READDATA))
       {

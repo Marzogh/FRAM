@@ -2,7 +2,7 @@
   |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
   |                                                               Struct_writer.ino                                                               |
   |                                                               SPIFRAM library                                                                 |
-  |                                                                   v 0.0.1b                                                                    |
+  |                                                                   v 1.0.0                                                                     |
   |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
   |                                                                    Marzogh                                                                    |
   |                                                                  16.11.2016                                                                   |
@@ -76,10 +76,15 @@ void setup() {
   }
   Serial.println();
   Serial.println();
+  pinMode(13, OUTPUT);
+  digitalWrite(13, HIGH);
+  delay(1000);
+  digitalWrite(13, LOW);
   fram.begin(CHIPSIZE);
-
-  uint32_t _cap = fram.getCapacity();
-  uint32_t _addr = random(0, _cap);
+  fram.eraseChip();
+  Serial.println("eraseDone");
+  delay(2000);
+  uint32_t _addr = random(0, fram.getCapacity());
 
 #ifndef SENSOR
   configuration.lux = 98.43;
@@ -96,42 +101,41 @@ void setup() {
   if (fram.writeAnything(_addr, configuration)) {
     Serial.println ("Data write successful");
     Serial.println(configuration.lux);
-  Serial.println(configuration.vOut);
-  Serial.println(configuration.RLDR);
-  Serial.println(configuration.light);
-  Serial.println(configuration.adc);
-
-  Serial.println("Saved!");
-  configuration.lux = 0;
-  configuration.vOut = 0;
-  configuration.RLDR = 0;
-  configuration.light = 0;
-  configuration.adc = 0;
-  Serial.println();
-  Serial.println("Local values set to 0");
-  Serial.println(configuration.lux);
-  Serial.println(configuration.vOut);
-  Serial.println(configuration.RLDR);
-  Serial.println(configuration.light);
-  Serial.println(configuration.adc);
-  Serial.println();
-  fram.readAnything(_addr, configuration);
-  fram.eraseSector(_addr, sizeof(configuration));
-
-  Serial.println("After reading");
-  Serial.println(configuration.lux);
-  Serial.println(configuration.vOut);
-  Serial.println(configuration.RLDR);
-  Serial.println(configuration.light);
-  Serial.println(configuration.adc);
+    Serial.println(configuration.vOut);
+    Serial.println(configuration.RLDR);
+    Serial.println(configuration.light);
+    Serial.println(configuration.adc);
   }
   else {
     Serial.println ("Data write failed");
   }
+
+    Serial.println("Saved!");
+    configuration.lux = 0;
+    configuration.vOut = 0;
+    configuration.RLDR = 0;
+    configuration.light = 0;
+    configuration.adc = 0;
+    Serial.println();
+    Serial.println("Local values set to 0");
+    Serial.println(configuration.lux);
+    Serial.println(configuration.vOut);
+    Serial.println(configuration.RLDR);
+    Serial.println(configuration.light);
+    Serial.println(configuration.adc);
+    Serial.println();
+    fram.readAnything(_addr, configuration);
+    fram.eraseSector(_addr, sizeof(configuration));
+
+    Serial.println("After reading");
+    Serial.println(configuration.lux);
+    Serial.println(configuration.vOut);
+    Serial.println(configuration.RLDR);
+    Serial.println(configuration.light);
+    Serial.println(configuration.adc);
 }
 
 void loop() {
-  delay(1000);
 }
 
 #ifdef SENSOR

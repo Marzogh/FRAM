@@ -1,4 +1,4 @@
-/* Arduino SPIFRAM Library v 0.0.1b
+/* Arduino SPIFRAM Library v 1.0.0
  * Copyright (C) 2015 by Prajwal Bhattaram
  * Modified by Prajwal Bhattaram - 14/11/2016
  *
@@ -51,14 +51,14 @@ bool SPIFRAM::_prep(uint8_t opcode, uint32_t address, uint32_t size) {
     if (!_addressCheck(address, size)) {
       return false;
     }
-    if(!_writeEnable()){
-      return false;
-    }
     #ifndef HIGHSPEED
     if(!_notPrevWritten(address, size)) {
       return false;
     }
     #endif
+    if(!_writeEnable()){
+      return false;
+    }
     return true;
     break;
 
@@ -72,9 +72,9 @@ bool SPIFRAM::_prep(uint8_t opcode, uint32_t address, uint32_t size) {
 }
 
 bool SPIFRAM::_transferAddress(void) {
-  _nextByte(_currentAddress >> 16);
-  _nextByte(_currentAddress >> 8);
-  _nextByte(_currentAddress);
+  //_nextByte(_currentAddress >> 16);
+  _nextByte(PAGEPROG, (uint8_t)_currentAddress >> 8);
+  _nextByte(PAGEPROG, (uint8_t)_currentAddress & 0xFF);
 }
 
 bool SPIFRAM::_startSPIBus(void) {
@@ -109,17 +109,17 @@ bool SPIFRAM::_beginSPI(uint8_t opcode) {
   CHIP_SELECT
   switch (opcode) {
     case READDATA:
-    _nextByte(opcode);
+    _nextByte(PAGEPROG, opcode);
     _transferAddress();
     break;
 
     case PAGEPROG:
-    _nextByte(opcode);
+    _nextByte(PAGEPROG, opcode);
     _transferAddress();
     break;
 
     default:
-    _nextByte(opcode);
+    _nextByte(PAGEPROG, opcode);
     break;
   }
   return true;
@@ -127,12 +127,30 @@ bool SPIFRAM::_beginSPI(uint8_t opcode) {
 //SPI data lines are left open until _endSPI() is called
 
 //Reads/Writes next byte. Call 'n' times to read/write 'n' number of bytes. Should be called after _beginSPI()
-uint8_t SPIFRAM::_nextByte(uint8_t data) {
-#if defined (ARDUINO_ARCH_SAM)
-  return _dueSPITransfer(data);
-#else
-  return xfer(data);
-#endif
+uint8_t SPIFRAM::_nextByte(uint8_t opcode, uint8_t data) {
+  uint8_t _dataOut;
+  switch (opcode) {
+    case READDATA:
+  #if defined (ARDUINO_ARCH_SAM)
+    _dataOut = _dueSPITransfer(data);
+  #else
+    _dataOut = xfer(data);
+  #endif
+    break;
+
+    case PAGEPROG:
+  #if defined (ARDUINO_ARCH_SAM)
+    _dueSPITransfer(data);
+  #else
+    xfer(data);
+  #endif
+    _dataOut = true;
+    break;
+
+    default:
+    break;
+  }
+  return _dataOut;
 }
 
 //Reads/Writes next int. Call 'n' times to read/write 'n' number of bytes. Should be called after _beginSPI()
@@ -192,7 +210,7 @@ void SPIFRAM::_endSPI(void) {
 // Checks if status register 1 can be accessed - used during powerdown and power up and for debugging
 uint8_t SPIFRAM::_readStat1(void) {
 	_beginSPI(READSTAT1);
-  uint8_t stat1 = _nextByte();
+  uint8_t stat1 = _nextByte(READDATA);
   //_endSPI();
   CHIP_DESELECT
 	return stat1;
@@ -201,21 +219,19 @@ uint8_t SPIFRAM::_readStat1(void) {
 //Enables writing to chip by setting the WRITEENABLE bit
 bool SPIFRAM::_writeEnable(uint32_t timeout) {
   uint32_t startTime = millis();
-  if (!(state & WRTEN)) {
-    do {
-      _beginSPI(WRITEENABLE);
-      //_endSPI();
-      CHIP_DESELECT
-      state = _readStat1();
-      if((millis()-startTime) > timeout) {
-        errorcode = CANTENWRITE;
-        #ifdef RUNDIAGNOSTIC
-        _troubleshoot();
-        #endif
-        return false;
-       }
-     } while (!(state & WRTEN));
-  }
+  do {
+    _beginSPI(WRITEENABLE);
+    //_endSPI();
+    CHIP_DESELECT
+    state = _readStat1();
+    if((millis()-startTime) > timeout) {
+      errorcode = CANTENWRITE;
+      #ifdef RUNDIAGNOSTIC
+      _troubleshoot();
+      #endif
+      return false;
+     }
+   } while (!(state & WRTEN));
   return true;
 }
 
@@ -233,10 +249,10 @@ bool SPIFRAM::_writeDisable(void) {
 //Checks for presence of chip by requesting JEDEC ID
 bool SPIFRAM::_getJedecId(uint8_t *b1, uint8_t *b2, uint8_t *b3, uint8_t *b4) {
   _beginSPI(JEDECID);
-  *b1 = _nextByte(NULLBYTE);		// manufacturer id
-  *b2 = _nextByte(NULLBYTE);		// continuation code
-  *b3 = _nextByte(NULLBYTE);		// capacity
-  *b4 = _nextByte(NULLBYTE);		// product id
+  *b1 = _nextByte(READDATA);		// manufacturer id
+  *b2 = _nextByte(READDATA);		// continuation code
+  *b3 = _nextByte(READDATA);		// capacity
+  *b4 = _nextByte(READDATA);		// product id
   _endSPI();
   return true;
 }
@@ -314,7 +330,7 @@ bool SPIFRAM::_addressCheck(uint32_t address, uint32_t size) {
 bool SPIFRAM::_notPrevWritten(uint32_t address, uint32_t size) {
   _beginSPI(READDATA);
   for (uint16_t i = 0; i < size; i++) {
-    if (_nextByte() != EMPTYCELL) {
+    if (_nextByte(READDATA) != EMPTYCELL) {
       _endSPI();
       return false;
     }
@@ -421,7 +437,7 @@ uint8_t SPIFRAM::readByte(uint32_t address) {
 		return false;
   }
   _beginSPI(READDATA);
-  data = _nextByte();
+  data = _nextByte(READDATA);
   _endSPI();
   return data;
 }
@@ -435,7 +451,7 @@ int8_t SPIFRAM::readChar(uint32_t address) {
 		return false;
   }
   _beginSPI(READDATA);
-  data = _nextByte();
+  data = _nextByte(READDATA);
   _endSPI();
   return data;
 }
@@ -444,7 +460,7 @@ int8_t SPIFRAM::readChar(uint32_t address) {
 // Takes two arguments
 //		1. address --> Any address from 0 to maxAddress
 //		2. data_buffer --> The array of bytes to be read from the flash memory - starting at the address indicated
-bool  SPIFRAM::readByteArray(uint32_t address, uint8_t *data_buffer, uint16_t bufferSize) {
+bool  SPIFRAM::readByteArray(uint32_t address, uint8_t *data_buffer, uint32_t bufferSize) {
 	if (!_prep(READDATA, address, bufferSize)) {
     return false;
 	}
@@ -458,7 +474,7 @@ bool  SPIFRAM::readByteArray(uint32_t address, uint8_t *data_buffer, uint16_t bu
 // Takes two arguments
 //		1. address --> Any address from 0 to maxAddress
 //		2. data_buffer --> The array of bytes to be read from the flash memory - starting at the address indicated
-bool  SPIFRAM::readCharArray(uint32_t address, char *data_buffer, uint16_t bufferSize) {
+bool  SPIFRAM::readCharArray(uint32_t address, char *data_buffer, uint32_t bufferSize) {
   if (!_prep(READDATA, address, bufferSize)) {
     return false;
 	}
@@ -594,7 +610,7 @@ bool SPIFRAM::writeByte(uint32_t address, uint8_t data, bool errorCheck) {
   }
 
   _beginSPI(PAGEPROG);
-  _nextByte(data);
+  _nextByte(PAGEPROG, data);
   CHIP_DESELECT
 
 		if (!errorCheck) {
@@ -617,7 +633,7 @@ bool SPIFRAM::writeChar(uint32_t address, int8_t data, bool errorCheck) {
   }
 
   _beginSPI(PAGEPROG);
-  _nextByte(data);
+  _nextByte(PAGEPROG, data);
   CHIP_DESELECT
 
 		if (!errorCheck) {
@@ -635,7 +651,7 @@ bool SPIFRAM::writeChar(uint32_t address, int8_t data, bool errorCheck) {
 //  	1. address --> Any address - from 0 to maxAddress
 //  	2. data --> An array of bytes to be written to a particular location on a page
 //		3. errorCheck --> Turned on by default. Checks for writing errors
-bool SPIFRAM::writeByteArray(uint32_t address, uint8_t *data_buffer, uint16_t bufferSize, bool errorCheck) {
+bool SPIFRAM::writeByteArray(uint32_t address, uint8_t *data_buffer, uint32_t bufferSize, bool errorCheck) {
   if (!_prep(PAGEPROG, address, bufferSize)) {
     return false;
   }
@@ -644,27 +660,18 @@ bool SPIFRAM::writeByteArray(uint32_t address, uint8_t *data_buffer, uint16_t bu
   _nextBuf(PAGEPROG, &data_buffer[0], bufferSize);
   CHIP_DESELECT
 
-  /*_beginSPI(PAGEPROG);
-  for (uint16_t i = 0; i < bufferSize; ++i) {
-    _nextByte(data_buffer[data_offset + i]);
-  }
-  CHIP_DESELECT*/
-
   if (!errorCheck) {
     _endSPI();
     return true;
   }
   else {
-    _currentAddress = address;
-    CHIP_SELECT
-    _nextByte(READDATA);
-    _transferAddress();
-    for (uint16_t j = 0; j < bufferSize; j++) {
-      if (_nextByte(NULLBYTE) != data_buffer[j]) {
+    uint8_t _outBuf[bufferSize];
+    readByteArray(address, _outBuf, bufferSize);
+    for (uint32_t j = 0; j < bufferSize; j++) {
+      if (_outBuf[j] != data_buffer[j]) {
         return false;
       }
     }
-    _endSPI();
     return true;
   }
 }
@@ -674,7 +681,7 @@ bool SPIFRAM::writeByteArray(uint32_t address, uint8_t *data_buffer, uint16_t bu
 //  	1. address --> Any address - from 0 to maxAddress
 //  	2. data --> An array of chars to be written to a particular location on a page
 //		3. errorCheck --> Turned on by default. Checks for writing errors
-bool SPIFRAM::writeCharArray(uint32_t address, char *data_buffer, uint16_t bufferSize, bool errorCheck) {
+bool SPIFRAM::writeCharArray(uint32_t address, char *data_buffer, uint32_t bufferSize, bool errorCheck) {
   if (!_prep(PAGEPROG, address, bufferSize)) {
     return false;
   }
@@ -683,27 +690,18 @@ bool SPIFRAM::writeCharArray(uint32_t address, char *data_buffer, uint16_t buffe
   _nextBuf(PAGEPROG, (uint8_t*) &data_buffer[0], bufferSize);
   CHIP_DESELECT
 
-  /*_beginSPI(PAGEPROG);
-  for (uint16_t i = 0; i < writeBufSz; ++i) {
-    _nextByte(data_buffer[data_offset + i]);
-  }
-  CHIP_DESELECT*/
-
   if (!errorCheck) {
     _endSPI();
     return true;
   }
   else {
-    _currentAddress = address;
-    CHIP_SELECT
-    _nextByte(READDATA);
-    _transferAddress();
-    for (uint16_t j = 0; j < bufferSize; j++) {
-      if (_nextByte(NULLBYTE) != data_buffer[j]) {
+    char _outBuf[bufferSize];
+    readCharArray(address, _outBuf, bufferSize);
+    for (uint32_t j = 0; j < bufferSize; j++) {
+      if (_outBuf[j] != data_buffer[j]) {
         return false;
       }
     }
-    _endSPI();
     return true;
   }
 }
@@ -909,14 +907,14 @@ bool SPIFRAM::writeStr(uint32_t address, String &inputStr, bool errorCheck) {
 // the requested size, starting the address provided.
 // Sector size can be indicated in bytes
 bool SPIFRAM::eraseSector(uint32_t address, uint32_t sectorSize) {
-	if(!_writeEnable())
+	if(!_writeEnable()) {
  		return false;
+  }
 
-	_beginSPI(PAGEPROG);
   _currentAddress = address;
-  _transferAddress();
+	_beginSPI(PAGEPROG);
   for(uint16_t i = 0; i < sectorSize; i++) {
-    _nextByte(EMPTYCELL);
+    _nextByte(PAGEPROG, EMPTYCELL);
   }
   _endSPI();
 
@@ -928,12 +926,10 @@ bool SPIFRAM::eraseChip(void) {
 	if(!_writeEnable()) {
  		return false;
   }
-
-	_beginSPI(PAGEPROG);
   _currentAddress = 0x00;
-  _transferAddress();
+	_beginSPI(PAGEPROG);
   for(uint16_t i = 0; i < capacity; i++) {
-    _nextByte(EMPTYCELL);
+    _nextByte(PAGEPROG, EMPTYCELL);
   }
   _endSPI();
 

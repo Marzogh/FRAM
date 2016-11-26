@@ -2,7 +2,7 @@
   |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
   |                                                             readWriteString.ino                                                               |
   |                                                               SPIFRAM library                                                                 |
-  |                                                                   v 0.0.1b                                                                    |
+  |                                                                   v 1.0.0                                                                     |
   |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
   |                                                                    Marzogh                                                                    |
   |                                                                  16.11.2016                                                                   |
@@ -54,14 +54,14 @@ void setup() {
   Serial.print(F("Written string: "));
   Serial.print(inputString);
   Serial.print(F(" to address "));
-  Serial.print(strAddr);
+  Serial.println(strAddr);
   String outputString = "";
-  if (fram.readStr(strAddr, outputString)) {
-    Serial.print(F("Read string: "));
-    Serial.print(outputString);
-    Serial.print(F(" from address "));
-    Serial.print(strAddr);
-  }
+  fram.readStr(strAddr, outputString);
+  Serial.print(F("Read string: "));
+  Serial.print(outputString);
+  Serial.print(F(" from address "));
+  Serial.print(strAddr);
+
   while (!fram.eraseSector(strAddr, strSize));
 }
 
