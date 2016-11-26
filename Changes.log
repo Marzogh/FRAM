@@ -14,3 +14,4 @@ Abilities:
                               // A 16MB(Megabit) chip would be MB16 etc.
 
 --> Got rid of getChipName() - it is superfluous
+-->
